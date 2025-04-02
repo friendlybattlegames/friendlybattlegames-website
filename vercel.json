@@ -8,18 +8,6 @@
   ],
   "routes": [
     {
-      "src": "/styles\\.css",
-      "headers": { "Content-Type": "text/css" }
-    },
-    {
-      "src": "/js/(.*)",
-      "headers": { "Content-Type": "application/javascript" }
-    },
-    {
-      "src": "/images/(.*)",
-      "headers": { "Content-Type": "image/jpeg" }
-    },
-    {
       "src": "/(.*)",
       "dest": "/$1",
       "headers": {
