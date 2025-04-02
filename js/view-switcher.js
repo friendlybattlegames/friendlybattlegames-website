@@ -4,6 +4,8 @@ function toggleView() {
     const toggleButton = document.getElementById('view-toggle');
     const isMobileView = localStorage.getItem('preferredView') === 'mobile';
     
+    if (!viewport || !toggleButton) return;
+    
     if (!isMobileView) {
         // Switch to mobile view
         viewport.setAttribute('content', 'width=device-width, initial-scale=0.6, user-scalable=no');
@@ -27,6 +29,9 @@ function toggleView() {
 document.addEventListener('DOMContentLoaded', () => {
     const viewport = document.querySelector('meta[name="viewport"]');
     const toggleButton = document.getElementById('view-toggle');
+    
+    if (!viewport || !toggleButton) return;
+    
     const preferredView = localStorage.getItem('preferredView') || 'desktop';
     
     if (preferredView === 'mobile') {

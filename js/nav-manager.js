@@ -25,6 +25,9 @@ class NavManager {
         const avatar = document.getElementById('nav-avatar');
         const usernameSpan = document.querySelector('.username');
 
+        // If elements don't exist, return early
+        if (!userSection || !authButtons) return;
+
         if (session && session.user) {
             console.log('NavManager: User is authenticated:', session.user);
 
@@ -39,23 +42,21 @@ class NavManager {
                 console.error('NavManager: Error fetching profile:', error);
             } else {
                 console.log('NavManager: Found user profile:', profile);
-                if (profile.avatar_url) {
+                if (profile.avatar_url && avatar) {
                     avatar.src = profile.avatar_url;
                 }
-                if (profile.username) {
+                if (profile.username && usernameSpan) {
                     usernameSpan.textContent = profile.username;
-                } else {
+                } else if (usernameSpan) {
                     usernameSpan.textContent = session.user.email.split('@')[0];
                 }
             }
 
-            // Show user section, hide auth buttons
-            if (userSection) userSection.style.display = 'block';
-            if (authButtons) authButtons.style.display = 'none';
+            userSection.style.display = 'block';
+            authButtons.style.display = 'none';
         } else {
-            // Hide user section, show auth buttons
-            if (userSection) userSection.style.display = 'none';
-            if (authButtons) authButtons.style.display = 'flex';
+            userSection.style.display = 'none';
+            authButtons.style.display = 'flex';
         }
 
         // Update navigation links based on auth state
@@ -116,29 +117,30 @@ document.addEventListener('click', async (e) => {
         try {
             const supabase = await window.getSupabase();
             const { error } = await supabase.auth.signOut();
-            if (error) throw error;
-            
-            // Redirect to home page after successful sign out
-            window.location.href = 'index.html';
+            if (error) {
+                console.error('Error signing out:', error.message);
+            } else {
+                window.location.href = 'index.html';
+            }
         } catch (error) {
             console.error('Error signing out:', error.message);
         }
     }
 });
 
-// Initialize NavManager when the DOM is loaded and Supabase is ready
+async function checkSupabase() {
+    if (typeof supabase === 'undefined') {
+        console.error('Supabase client not initialized');
+        return;
+    }
+    try {
+        const supabase = await window.getSupabase();
+        new NavManager(supabase);
+    } catch (error) {
+        console.error('Error initializing NavManager:', error);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    const checkSupabase = async () => {
-        try {
-            if (window.getSupabase) {
-                const supabase = await window.getSupabase();
-                window.navManager = new NavManager(supabase);
-            } else {
-                setTimeout(checkSupabase, 100);
-            }
-        } catch (error) {
-            console.error('Error initializing NavManager:', error);
-        }
-    };
     checkSupabase();
 });
