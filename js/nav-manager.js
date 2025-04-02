@@ -22,8 +22,8 @@ class NavManager {
         console.log('NavManager: Running setupNav. Session:', session);
         const userSection = document.getElementById('user-section');
         const authButtons = document.getElementById('auth-buttons');
-        const avatar = document.getElementById('nav-avatar');
-        const usernameSpan = document.querySelector('.username');
+        const avatar = document.getElementById('avatar-img');
+        const dropdownContent = document.querySelector('.dropdown-content');
 
         // If elements don't exist, return early
         if (!userSection || !authButtons) return;
@@ -42,21 +42,40 @@ class NavManager {
                 console.error('NavManager: Error fetching profile:', error);
             } else {
                 console.log('NavManager: Found user profile:', profile);
-                if (profile.avatar_url && avatar) {
-                    avatar.src = profile.avatar_url;
-                }
-                if (profile.username && usernameSpan) {
-                    usernameSpan.textContent = profile.username;
-                } else if (usernameSpan) {
-                    usernameSpan.textContent = session.user.email.split('@')[0];
+                if (avatar) {
+                    avatar.src = profile.avatar_url || 'images/default-avatar.png';
                 }
             }
 
             userSection.style.display = 'block';
             authButtons.style.display = 'none';
+
+            // Setup dropdown toggle
+            if (avatar) {
+                avatar.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (dropdownContent) {
+                        dropdownContent.classList.toggle('show');
+                    }
+                };
+            }
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (dropdownContent && !userSection.contains(e.target)) {
+                    dropdownContent.classList.remove('show');
+                }
+            });
         } else {
+            if (avatar) {
+                avatar.src = 'images/default-avatar.png';
+            }
             userSection.style.display = 'none';
             authButtons.style.display = 'flex';
+            if (dropdownContent) {
+                dropdownContent.classList.remove('show');
+            }
         }
 
         // Update navigation links based on auth state
@@ -114,16 +133,20 @@ class NavManager {
 document.addEventListener('click', async (e) => {
     if (e.target && e.target.id === 'dropdown-signout') {
         e.preventDefault();
-        try {
-            const supabase = await window.getSupabase();
-            const { error } = await supabase.auth.signOut();
-            if (error) {
-                console.error('Error signing out:', error.message);
-            } else {
-                window.location.href = 'index.html';
-            }
-        } catch (error) {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
             console.error('Error signing out:', error.message);
+        } else {
+            // Reset avatar and hide dropdown before redirect
+            const avatar = document.getElementById('avatar-img');
+            const dropdownContent = document.querySelector('.dropdown-content');
+            if (avatar) {
+                avatar.src = 'images/default-avatar.png';
+            }
+            if (dropdownContent) {
+                dropdownContent.classList.remove('show');
+            }
+            window.location.href = 'index.html';
         }
     }
 });
@@ -134,7 +157,6 @@ async function checkSupabase() {
         return;
     }
     try {
-        const supabase = await window.getSupabase();
         new NavManager(supabase);
     } catch (error) {
         console.error('Error initializing NavManager:', error);
