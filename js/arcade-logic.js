@@ -1,134 +1,219 @@
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Get Supabase client
-        const supabase = await window.getSupabase();
-        console.log("Arcade: Supabase ready");
+        // Initialize mobile controls
+        initializeMobileControls();
 
-        // Load leaderboards first - this works for both authenticated and non-authenticated users
-        await loadLeaderboards(supabase);
-
-        // Then check auth state and enable/disable game buttons
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError) {
-            console.error('Error getting session:', sessionError);
-            return;
-        }
-
-        // Enable/disable game buttons based on auth state
+        // Enable play buttons once authenticated
         const playButtons = document.querySelectorAll('.play-button');
-        if (session?.user) {
-            // User is authenticated, enable play buttons
-            playButtons.forEach(button => {
-                button.disabled = false;
-                button.addEventListener('click', handleGameStart);
+        playButtons.forEach(button => {
+            button.disabled = false;
+            button.addEventListener('click', () => {
+                const gameId = button.getAttribute('data-game');
+                if (gameId) {
+                    showGameContainer(gameId);
+                }
             });
-
-            // Load high scores
-            await loadHighScores(supabase, session.user.id);
-        } else {
-            // User is not authenticated, keep buttons disabled and show login message
-            playButtons.forEach(button => {
-                button.disabled = true;
-                button.textContent = 'Login to Play';
-                button.addEventListener('click', () => {
-                    window.location.href = 'login.html';
-                });
-            });
-        }
-
-        // Set up auth state change listener
-        supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN' && session?.user) {
-                // Re-enable play buttons
-                playButtons.forEach(button => {
-                    button.disabled = false;
-                    button.textContent = 'Play';
-                    button.addEventListener('click', handleGameStart);
-                });
-                // Load high scores
-                await loadHighScores(supabase, session.user.id);
-            } else if (event === 'SIGNED_OUT') {
-                // Disable play buttons
-                playButtons.forEach(button => {
-                    button.disabled = true;
-                    button.textContent = 'Login to Play';
-                    button.addEventListener('click', () => {
-                        window.location.href = 'login.html';
-                    });
-                });
-            }
         });
 
-        // Function to show game container
-        function showGameContainer(gameId) {
-            const gameContainer = document.getElementById('game-container');
-            const gameCanvas = document.getElementById('game-canvas');
-            const gameControlsOverlay = document.querySelector('.game-controls-overlay');
-            const mobileControls = document.querySelector('.mobile-controls');
-            
-            if (!gameContainer || !gameCanvas) return;
-
-            // Show game container
-            gameContainer.style.display = 'flex';
-            gameContainer.classList.add('active');
-
-            // Show mobile controls
-            if (gameControlsOverlay && mobileControls) {
-                gameControlsOverlay.style.display = 'block';
-                mobileControls.style.display = 'flex';
-            }
-
-            // Set up close button
-            const closeButton = document.getElementById('close-game');
-            if (closeButton) {
-                closeButton.onclick = () => {
-                    gameContainer.style.display = 'none';
-                    gameContainer.classList.remove('active');
-                    if (gameControlsOverlay && mobileControls) {
-                        gameControlsOverlay.style.display = 'none';
-                        mobileControls.style.display = 'none';
-                    }
-                    // Additional cleanup if needed
-                };
-            }
-
-            // Initialize the game based on gameId
-            switch (gameId) {
-                case 'space-shooter':
-                    // Initialize space shooter game
-                    break;
-                case 'snake':
-                    // Initialize snake game
-                    break;
-                case 'memory':
-                    // Initialize memory game
-                    break;
-            }
-        }
-
-        // Initialize mobile controls
-        const gameControlsOverlay = document.querySelector('.game-controls-overlay');
-        const mobileControls = document.querySelector('.mobile-controls');
-        
-        if (gameControlsOverlay && mobileControls) {
-            // Force initial display properties
-            gameControlsOverlay.style.cssText = 'display: block !important; z-index: 1010;';
-            mobileControls.style.cssText = 'display: flex !important;';
-            
-            // Add debug outlines
-            gameControlsOverlay.style.border = '2px solid red';
-            mobileControls.style.border = '2px solid blue';
-            
-            console.log('Mobile controls initialized');
-            console.log('Overlay display:', getComputedStyle(gameControlsOverlay).display);
-            console.log('Controls display:', getComputedStyle(mobileControls).display);
-        } else {
-            console.error('Mobile controls elements not found');
-        }
     } catch (error) {
         console.error('Error initializing arcade:', error);
     }
 });
+
+// Function to show game container
+function showGameContainer(gameId) {
+    const gameContainer = document.getElementById('game-container');
+    const gameCanvas = document.getElementById('game-canvas');
+    const gameControlsOverlay = document.querySelector('.game-controls-overlay');
+    const mobileControls = document.querySelector('.mobile-controls');
+    
+    if (!gameContainer || !gameCanvas) return;
+
+    // Show game container
+    gameContainer.style.display = 'flex';
+    gameContainer.classList.add('active');
+
+    // Show mobile controls if in mobile view
+    if (document.body.classList.contains('mobile-view')) {
+        showMobileControls();
+    }
+
+    // Set up close button
+    const closeButton = document.getElementById('close-game');
+    if (closeButton) {
+        closeButton.onclick = () => {
+            gameContainer.style.display = 'none';
+            gameContainer.classList.remove('active');
+            hideMobileControls();
+        };
+    }
+
+    // Initialize the game based on gameId
+    switch (gameId) {
+        case 'space-shooter':
+            initSpaceShooterGame();
+            break;
+        case 'snake':
+            initSnakeGame();
+            break;
+        case 'memory':
+            initMemoryGame();
+            break;
+    }
+}
+
+// Initialize mobile controls
+function initializeMobileControls() {
+    const gameControlsOverlay = document.querySelector('.game-controls-overlay');
+    const mobileControls = document.querySelector('.mobile-controls');
+    
+    if (!gameControlsOverlay || !mobileControls) {
+        console.error('Mobile controls elements not found');
+        return;
+    }
+
+    // Set up D-pad controls
+    setupDpadControls();
+    
+    // Set up action button
+    setupActionButton();
+
+    // Show controls if in mobile view
+    if (document.body.classList.contains('mobile-view')) {
+        showMobileControls();
+    }
+
+    // Add view change listener
+    document.body.addEventListener('classChange', () => {
+        if (document.body.classList.contains('mobile-view')) {
+            showMobileControls();
+        } else {
+            hideMobileControls();
+        }
+    });
+
+    console.log('Mobile controls initialized');
+}
+
+// Set up D-pad controls
+function setupDpadControls() {
+    const keys = {
+        'up-btn': 'ArrowUp',
+        'left-btn': 'ArrowLeft',
+        'right-btn': 'ArrowRight',
+        'down-btn': 'ArrowDown'
+    };
+
+    Object.entries(keys).forEach(([btnId, key]) => {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+
+        // Touch events
+        btn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            simulateKeyEvent('keydown', key);
+            btn.style.transform = 'scale(0.9)';
+        }, { passive: false });
+
+        btn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            simulateKeyEvent('keyup', key);
+            btn.style.transform = 'scale(1)';
+        }, { passive: false });
+
+        // Mouse events for testing
+        btn.addEventListener('mousedown', (e) => {
+            simulateKeyEvent('keydown', key);
+            btn.style.transform = 'scale(0.9)';
+        });
+
+        btn.addEventListener('mouseup', (e) => {
+            simulateKeyEvent('keyup', key);
+            btn.style.transform = 'scale(1)';
+        });
+
+        btn.addEventListener('mouseleave', (e) => {
+            simulateKeyEvent('keyup', key);
+            btn.style.transform = 'scale(1)';
+        });
+    });
+}
+
+// Set up action button
+function setupActionButton() {
+    const actionBtn = document.getElementById('action-btn');
+    if (!actionBtn) return;
+
+    // Touch events
+    actionBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        simulateKeyEvent('keydown', ' ');
+        actionBtn.style.transform = 'scale(0.9)';
+    }, { passive: false });
+
+    actionBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        simulateKeyEvent('keyup', ' ');
+        actionBtn.style.transform = 'scale(1)';
+    }, { passive: false });
+
+    // Mouse events for testing
+    actionBtn.addEventListener('mousedown', (e) => {
+        simulateKeyEvent('keydown', ' ');
+        actionBtn.style.transform = 'scale(0.9)';
+    });
+
+    actionBtn.addEventListener('mouseup', (e) => {
+        simulateKeyEvent('keyup', ' ');
+        actionBtn.style.transform = 'scale(1)';
+    });
+
+    actionBtn.addEventListener('mouseleave', (e) => {
+        simulateKeyEvent('keyup', ' ');
+        actionBtn.style.transform = 'scale(1)';
+    });
+}
+
+// Show mobile controls
+function showMobileControls() {
+    const gameControlsOverlay = document.querySelector('.game-controls-overlay');
+    const mobileControls = document.querySelector('.mobile-controls');
+    
+    if (gameControlsOverlay && mobileControls) {
+        gameControlsOverlay.style.display = 'block';
+        mobileControls.style.display = 'flex';
+        console.log('Showing mobile controls');
+    }
+}
+
+// Hide mobile controls
+function hideMobileControls() {
+    const gameControlsOverlay = document.querySelector('.game-controls-overlay');
+    const mobileControls = document.querySelector('.mobile-controls');
+    
+    if (gameControlsOverlay && mobileControls) {
+        gameControlsOverlay.style.display = 'none';
+        mobileControls.style.display = 'none';
+        console.log('Hiding mobile controls');
+    }
+}
+
+// Simulate keyboard events
+function simulateKeyEvent(type, key) {
+    const event = new KeyboardEvent(type, {
+        key: key,
+        code: key.length === 1 ? 'Space' : key,
+        bubbles: true,
+        cancelable: true
+    });
+    document.dispatchEvent(event);
+}
+
+// Make loadLeaderboards available globally for the game to call
+window.loadLeaderboards = async () => {
+    const supabase = await window.getSupabase();
+    return loadLeaderboards(supabase);
+};
 
 async function loadHighScores(supabase, userId) {
     try {
@@ -215,12 +300,6 @@ async function loadLeaderboards(supabase) {
         console.error('Error loading leaderboards:', error);
     }
 }
-
-// Make loadLeaderboards available globally for the game to call
-window.loadLeaderboards = async () => {
-    const supabase = await window.getSupabase();
-    return loadLeaderboards(supabase);
-};
 
 async function handleGameStart(event) {
     const gameType = event.target.dataset.game;

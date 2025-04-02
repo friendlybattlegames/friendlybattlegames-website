@@ -122,9 +122,11 @@
                     <button id="down-btn" class="d-pad-btn down">
                         <i class="fas fa-chevron-down"></i>
                     </button>
+                    <div class="control-label">Movement</div>
                 </div>
                 <button id="action-btn" class="action-btn">
                     <i class="fas fa-crosshairs"></i>
+                    <div class="control-label">Action</div>
                 </button>
             </div>
         </div>
@@ -274,79 +276,107 @@
         bottom: 0;
         left: 0;
         right: 0;
-        height: 200px;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 2000;
-        pointer-events: all;
+        height: 250px;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7));
+        z-index: 9999;
         display: none;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
     }
 
     .mobile-controls {
         position: absolute;
-        bottom: 20px;
+        bottom: 30px;
         left: 20px;
         right: 20px;
         display: none;
         justify-content: space-between;
         align-items: center;
-        pointer-events: all;
     }
 
     .d-pad {
         position: relative;
-        width: 150px;
-        height: 150px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 75px;
+        width: 180px;
+        height: 180px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 90px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
     }
 
     .d-pad-btn {
         position: absolute;
-        width: 50px;
-        height: 50px;
+        width: 60px;
+        height: 60px;
         border: none;
-        border-radius: 25px;
-        background: rgba(255, 255, 255, 0.5);
-        color: white;
-        font-size: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    }
-
-    .d-pad-btn:active {
-        background: rgba(255, 255, 255, 0.7);
-        transform: scale(0.95);
-    }
-
-    .d-pad-btn.up { top: 0; left: 50px; transform: translateX(-50%); }
-    .d-pad-btn.left { left: 0; top: 50px; transform: translateY(-50%); }
-    .d-pad-btn.right { right: 0; top: 50px; transform: translateY(-50%); }
-    .d-pad-btn.down { bottom: 0; left: 50px; transform: translateX(-50%); }
-
-    .action-btn {
-        width: 80px;
-        height: 80px;
-        border: none;
-        border-radius: 40px;
-        background: rgba(255, 0, 0, 0.5);
-        color: white;
+        border-radius: 30px;
+        background: rgba(255, 255, 255, 0.8);
+        color: #333;
         font-size: 24px;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        margin-right: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        transition: all 0.2s ease;
+    }
+
+    .d-pad-btn:active {
+        background: rgba(255, 255, 255, 1);
+        transform: scale(0.9);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    }
+
+    .d-pad-btn.up { top: 5px; left: 60px; }
+    .d-pad-btn.left { left: 5px; top: 60px; }
+    .d-pad-btn.right { right: 5px; top: 60px; }
+    .d-pad-btn.down { bottom: 5px; left: 60px; }
+
+    .action-btn {
+        width: 100px;
+        height: 100px;
+        border: none;
+        border-radius: 50px;
+        background: linear-gradient(145deg, #ff4444, #ff0000);
+        color: white;
+        font-size: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        box-shadow: 0 6px 16px rgba(255, 0, 0, 0.4);
+        margin-right: 30px;
+        transition: all 0.2s ease;
+        border: 2px solid rgba(255, 255, 255, 0.3);
     }
 
     .action-btn:active {
-        background: rgba(255, 0, 0, 0.7);
-        transform: scale(0.95);
+        background: linear-gradient(145deg, #ff0000, #cc0000);
+        transform: scale(0.9);
+        box-shadow: 0 3px 8px rgba(255, 0, 0, 0.4);
+    }
+
+    .control-label {
+        position: absolute;
+        color: white;
+        font-size: 14px;
+        text-align: center;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .d-pad .control-label {
+        bottom: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .action-btn .control-label {
+        bottom: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
     }
 
     @media screen and (max-width: 768px) {
@@ -362,7 +392,7 @@
 
         .game-container {
             width: 100vw;
-            height: 100vh;
+            height: calc(100vh - 250px);
             border-radius: 0;
             position: fixed;
             top: 0;
@@ -388,19 +418,40 @@
 
         .game-header {
             padding: 10px;
+            background: rgba(0, 0, 0, 0.8);
         }
 
         .close-button {
-            z-index: 2001;
+            z-index: 10000;
+            background: #ff4444;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .close-button:active {
+            background: #cc0000;
+            transform: scale(0.95);
         }
     }
 
-    .mobile-view .game-controls-overlay {
+    body.mobile-view .game-controls-overlay {
         display: block !important;
     }
 
-    .mobile-view .mobile-controls {
+    body.mobile-view .mobile-controls {
         display: flex !important;
+    }
+
+    .game-controls-overlay {
+        border: 2px solid rgba(255, 0, 0, 0.5);
+    }
+
+    .mobile-controls {
+        border: 2px solid rgba(0, 0, 255, 0.5);
     }
     </style>
 
