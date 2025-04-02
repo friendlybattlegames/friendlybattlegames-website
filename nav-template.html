@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <nav>
     <div class="nav-container">
-        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+        <button class="mobile-menu-toggle" id="mobile-menu-toggle">
             <i class="fas fa-bars" id="menu-icon"></i>
         </button>
         <div class="nav-left">
@@ -78,6 +78,7 @@
         padding: 8px;
         cursor: pointer;
         transition: all 0.3s ease;
+        -webkit-tap-highlight-color: transparent;
     }
 
     .mobile-menu-toggle:hover {
@@ -237,12 +238,18 @@
     @media screen and (max-width: 768px) {
         .nav-container {
             position: relative;
+            padding: 0 15px;
+            height: var(--nav-height);
         }
 
         .mobile-menu-toggle {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             margin-right: 10px;
             z-index: 1001;
+            height: 40px;
+            width: 40px;
         }
 
         .nav-links {
@@ -253,18 +260,22 @@
             right: 0;
             background: #1a1a1a;
             flex-direction: column;
-            padding: 10px 0;
-            gap: 0;
+            padding: 0;
             margin: 0;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             z-index: 1000;
             max-height: calc(100vh - var(--nav-height));
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
 
         .nav-links.active {
             display: flex;
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .nav-links a {
@@ -272,6 +283,11 @@
             padding: 15px 20px;
             text-align: left;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
         }
 
         .nav-links a:last-child {
@@ -338,18 +354,79 @@
 document.addEventListener('DOMContentLoaded', function() {
     const userSection = document.querySelector('.user-section');
     const avatarImg = document.getElementById('avatar-img');
-    const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
     const navLinks = document.getElementById('nav-links');
     const menuIcon = document.getElementById('menu-icon');
 
     // Reset menu state on page load
-    navLinks.classList.remove('active');
-    menuIcon.classList.remove('fa-times');
-    menuIcon.classList.add('fa-bars');
+    if (navLinks && menuIcon) {
+        navLinks.classList.remove('active');
+        menuIcon.classList.remove('fa-times');
+        menuIcon.classList.add('fa-bars');
+    }
 
     // Handle mobile menu toggle
-    mobileMenuToggle.addEventListener('click', function(e) {
-        e.stopPropagation();
+    if (mobileMenuToggle && navLinks && menuIcon) {
+        mobileMenuToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleMobileMenu();
+        });
+    }
+
+    if (userSection && avatarImg) {
+        avatarImg.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            // Close mobile menu if open
+            if (navLinks && menuIcon) {
+                navLinks.classList.remove('active');
+                menuIcon.classList.remove('fa-times');
+                menuIcon.classList.add('fa-bars');
+            }
+            // Toggle user dropdown
+            userSection.classList.toggle('active');
+        });
+    }
+
+    // Close menus when clicking outside
+    document.addEventListener('click', function(e) {
+        const isClickInsideNav = e.target.closest('.nav-container');
+        if (!isClickInsideNav && navLinks && menuIcon) {
+            navLinks.classList.remove('active');
+            menuIcon.classList.remove('fa-times');
+            menuIcon.classList.add('fa-bars');
+            if (userSection) {
+                userSection.classList.remove('active');
+            }
+        }
+    });
+
+    // Prevent clicks inside the navigation from closing it
+    if (navLinks) {
+        navLinks.addEventListener('click', function(e) {
+            if (e.target.tagName === 'A') {
+                e.preventDefault();
+                const href = e.target.getAttribute('href');
+                // Close the mobile menu
+                navLinks.classList.remove('active');
+                menuIcon.classList.remove('fa-times');
+                menuIcon.classList.add('fa-bars');
+                // Navigate to the link
+                if (href) {
+                    window.location.href = href;
+                }
+            }
+            e.stopPropagation();
+        });
+    }
+});
+
+function toggleMobileMenu() {
+    const navLinks = document.getElementById('nav-links');
+    const menuIcon = document.getElementById('menu-icon');
+    
+    if (navLinks && menuIcon) {
         navLinks.classList.toggle('active');
         
         // Toggle between hamburger and close icons
@@ -360,58 +437,6 @@ document.addEventListener('DOMContentLoaded', function() {
             menuIcon.classList.remove('fa-times');
             menuIcon.classList.add('fa-bars');
         }
-        
-        // Close user dropdown if open
-        userSection.classList.remove('active');
-    });
-
-    if (userSection && avatarImg) {
-        avatarImg.addEventListener('click', function(e) {
-            e.stopPropagation();
-            // Close mobile menu if open
-            navLinks.classList.remove('active');
-            menuIcon.classList.remove('fa-times');
-            menuIcon.classList.add('fa-bars');
-            // Toggle user dropdown
-            userSection.classList.toggle('active');
-        });
-    }
-
-    // Close menus when clicking outside
-    document.addEventListener('click', function(e) {
-        const isClickInsideNav = e.target.closest('.nav-container');
-        if (!isClickInsideNav) {
-            navLinks.classList.remove('active');
-            menuIcon.classList.remove('fa-times');
-            menuIcon.classList.add('fa-bars');
-            userSection.classList.remove('active');
-        }
-    });
-
-    // Prevent clicks inside the navigation from closing it
-    navLinks.addEventListener('click', function(e) {
-        if (e.target.tagName === 'A') {
-            // Close the mobile menu when a link is clicked
-            navLinks.classList.remove('active');
-            menuIcon.classList.remove('fa-times');
-            menuIcon.classList.add('fa-bars');
-        }
-        e.stopPropagation();
-    });
-});
-
-function toggleMobileMenu() {
-    const navLinks = document.getElementById('nav-links');
-    const menuIcon = document.getElementById('menu-icon');
-    navLinks.classList.toggle('active');
-    
-    // Toggle between hamburger and close icons
-    if (navLinks.classList.contains('active')) {
-        menuIcon.classList.remove('fa-bars');
-        menuIcon.classList.add('fa-times');
-    } else {
-        menuIcon.classList.remove('fa-times');
-        menuIcon.classList.add('fa-bars');
     }
 }
 </script>
