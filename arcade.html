@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FriendlyBattleGames - Arcade</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/supabase-config.js" type="module" defer></script>
+    <script src="js/auth-check.js" defer></script>
+    <script src="js/nav-manager.js" type="module" defer></script> 
+    <script src="js/avatar-manager.js" defer></script>
+    <script src="js/load-nav.js" defer></script>
+    <!-- Load game-specific logic first -->
+    <script src="js/space-shooter-game.js" type="module" defer></script>
+    <!-- Add other game scripts here later, e.g., <script src="js/snake-game.js" defer></script> -->
+    <!-- Load the main arcade logic that uses the game scripts -->
+    <script src="js/arcade-logic.js" type="module" defer></script> 
+</head>
+<body>
+    <header>
+        <div id="nav-placeholder"></div>
+    </header>
+
+    <main>
+        <section class="hero-section">
+            <div class="container">
+                <h1>Welcome to the Arcade</h1>
+                <p>Challenge your friends and compete for high scores in our collection of exciting games!</p>
+                <a href="#games" class="cta-button">Play Now</a>
+            </div>
+        </section>
+
+        <section id="games" class="games-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Our Games</h2>
+                    <p>Choose your game and start competing!</p>
+                </div>
+                <div class="game-grid">
+                    <!-- Space Shooter Game Card -->
+                    <div class="game-card">
+                        <div class="game-image" style="background-image: url('https://raw.githubusercontent.com/codeium-org/arcade-assets/main/space-shooter.jpg')"></div>
+                        <div class="game-content">
+                            <h3>Space Shooter</h3>
+                            <p>Your Score: <span id="space-shooter-high-score">0</span></p>
+                            <div id="space-shooter-leaderboard" class="game-leaderboard"></div>
+                            <div class="game-controls">
+                                <button class="play-button" data-game="space-shooter" disabled>Play Now</button>
+                                <div class="controls-info">
+                                    <p><i class="fas fa-keyboard"></i> Arrow keys to move</p>
+                                    <p><i class="fas fa-space-shuttle"></i> Space to shoot</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Snake Game Card -->
+                    <div class="game-card">
+                        <div class="game-image" style="background-image: url('https://raw.githubusercontent.com/codeium-org/arcade-assets/main/snake-game.jpg')"></div>
+                        <div class="game-content">
+                            <h3>Snake Game</h3>
+                            <p>Your Score: <span id="snake-high-score">0</span></p>
+                            <div id="snake-leaderboard" class="game-leaderboard"></div>
+                            <div class="game-controls">
+                                <button class="play-button" data-game="snake" disabled>Play Now</button>
+                                <div class="controls-info">
+                                    <p><i class="fas fa-arrows-alt"></i> Arrow keys to move</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Memory Game Card -->
+                    <div class="game-card">
+                        <div class="game-image" style="background-image: url('https://raw.githubusercontent.com/codeium-org/arcade-assets/main/memory-match.jpg')"></div>
+                        <div class="game-content">
+                            <h3>Memory Match</h3>
+                            <p>Your Score: <span id="memory-high-score">0</span></p>
+                            <div id="memory-leaderboard" class="game-leaderboard"></div>
+                            <div class="game-controls">
+                                <button class="play-button" data-game="memory" disabled>Play Now</button>
+                                <div class="controls-info">
+                                    <p><i class="fas fa-mouse-pointer"></i> Click to flip cards</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Game Display Area (Initially Hidden) -->
+        <div id="game-container" class="game-container" style="display: none;">
+            <div class="game-header">
+                <button class="close-btn" onclick="closeGame()">&times;</button>
+                <div class="game-stats">
+                    <div class="stat">Score: <span id="current-score">0</span></div>
+                    <div class="stat">High Score: <span id="high-score">0</span></div>
+                </div>
+            </div>
+            <canvas id="gameCanvas"></canvas>
+        </div>
+
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2025 FriendlyBattleGames. All rights reserved.</p>
+                <div class="social-links">
+                    <a href="https://www.instagram.com/friendlybattlegames" target="_blank">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="https://www.facebook.com/friendlybattlegames" target="_blank">
+                        <i class="fab fa-facebook"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Game Modal -->
+    <div class="game-modal" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="gameTitle">Game Title</h2>
+                <div class="game-controls">
+                    <button id="pauseGame" class="control-button">
+                        <i class="fas fa-pause"></i>
+                    </button>
+                    <button id="restartGame" class="control-button">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                    <button class="close-modal" id="closeModal">&times;</button>
+                </div>
+            </div>
+            <div class="game-container" id="gameContainer">
+                <canvas id="gameCanvas"></canvas>
+                <div id="pauseOverlay" class="pause-overlay hidden">
+                    <div class="pause-content">
+                        <h3>Game Paused</h3>
+                        <p>Press Space to Resume</p>
+                    </div>
+                </div>
+            </div>
+            <div class="game-stats">
+                <div class="stat-group">
+                    <span class="stat-label">Score:</span>
+                    <span id="currentScore" class="stat-value">0</span>
+                </div>
+                <div class="stat-group">
+                    <span class="stat-label">High Score:</span>
+                    <span id="highScore" class="stat-value">0</span>
+                </div>
+                <div class="stat-group">
+                    <span class="stat-label">Time:</span>
+                    <span id="gameTime" class="stat-value">0:00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Navigation */
+        nav {
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem 0;
+        }
+
+        nav .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+            margin: 0 3rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.2s;
+            padding: 0.5rem 0;
+        }
+
+        .nav-links a:hover {
+            color: #4CAF50;
+        }
+
+        .nav-links a.active {
+            color: #4CAF50;
+        }
+
+        .auth-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .auth-section a {
+            text-decoration: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .auth-section a:first-child {
+            background-color: #2D3648;
+            color: white;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .auth-section a:first-child:hover {
+            background-color: #1f2532;
+        }
+
+        .auth-section a:last-child {
+            background-color: #4a90e2;
+            color: white;
+        }
+
+        .auth-section a:last-child:hover {
+            background-color: #357abd;
+        }
+
+        /* Hero section */
+        .hero-section {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: #f5f5f5;
+        }
+
+        .hero-section h1 {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .hero-section p {
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .cta-button:hover {
+            background: #388E3C;
+        }
+
+        /* Section styles */
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-header h2 {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .section-header p {
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Game grid */
+        .games-section {
+            padding: 4rem 0;
+            background: #fff;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 2rem 0;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .game-image {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .game-content {
+            padding: 1.5rem;
+        }
+
+        .game-content h3 {
+            margin: 0 0 1rem;
+            color: #2D3648;
+        }
+
+        .game-controls {
+            margin-top: 1rem;
+        }
+
+        .controls-info {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .controls-info p {
+            margin: 0.25rem 0;
+        }
+
+        .controls-info i {
+            margin-right: 0.5rem;
+            width: 16px;
+        }
+
+        .play-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            width: 100%;
+        }
+
+        .play-button:hover:not(:disabled) {
+            background: #45a049;
+        }
+
+        .play-button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .game-stats {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat .label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .stat span:not(.label) {
+            color: white;
+            font-weight: bold;
+        }
+
+        .game-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1a1a1a;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: #ff4444;
+        }
+
+        .game-stats {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+        }
+
+        /* Footer */
+        footer {
+            background: #333;
+            color: #fff;
+            padding: 2rem 0;
+            text-align: center;
+        }
+
+        footer .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        footer .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        footer .social-links {
+            margin-top: 1rem;
+        }
+
+        footer .social-links a {
+            margin: 0 1rem;
+            color: #fff;
+            transition: color 0.2s;
+        }
+
+        footer .social-links a:hover {
+            color: #4CAF50;
+        }
+
+        /* Game Modal Styles */
+        .game-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 90%;
+            width: fit-content;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .modal-header h2 {
+            color: #fff;
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 0 10px;
+            transition: color 0.3s;
+        }
+
+        .close-modal:hover {
+            color: #ff4444;
+        }
+
+        .game-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        #gameCanvas {
+            background-color: #000;
+            border: 2px solid #333;
+            border-radius: 4px;
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            margin-top: 15px;
+            color: #fff;
+            font-family: monospace;
+            font-size: 18px;
+        }
+
+        .game-stats span {
+            margin: 0 10px;
+        }
+
+        /* Avatar styles */
+        .user-section {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+            position: relative;
+        }
+
+        .avatar-dropdown {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .avatar-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .avatar-dropdown:hover .avatar-small {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .user-avatar {
+            cursor: pointer;
+        }
+
+        /* Leaderboard styles */
+        .game-leaderboard {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .game-leaderboard table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .game-leaderboard th,
+        .game-leaderboard td {
+            padding: 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .game-leaderboard th {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .game-leaderboard td {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .avatar-tiny {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+
+        .no-scores {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 1rem;
+        }
+
+        /* Game Controls */
+        .game-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-button {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .control-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1);
+        }
+
+        /* Pause Overlay */
+        .pause-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .pause-overlay.hidden {
+            display: none;
+        }
+
+        .pause-content {
+            text-align: center;
+            color: #fff;
+        }
+
+        .pause-content h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        /* Game Stats */
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            background-color: #333;
+            border-radius: 5px;
+            margin-top: 15px;
+            color: #fff;
+            font-family: monospace;
+            font-size: 18px;
+        }
+
+        .stat-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-label {
+            color: #888;
+        }
+
+        .stat-value {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        #currentScore {
+            min-width: 60px;
+            text-align: right;
+        }
+
+        /* Game Container */
+        .game-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        #gameCanvas {
+            background-color: #000;
+            border: 2px solid #333;
+            border-radius: 4px;
+        }
+
+        .leaderboard-entry {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            margin-bottom: 4px;
+            border-radius: 4px;
+        }
+
+        .leaderboard-entry.current-user {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+        }
+
+        .rank {
+            width: 40px;
+            font-weight: bold;
+        }
+
+        .username {
+            flex: 1;
+        }
+
+        .score {
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
+            border: 2px solid #fff;
+        }
+
+        .no-scores {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 1rem;
+        }
+    </style>
+</body>
+</html>

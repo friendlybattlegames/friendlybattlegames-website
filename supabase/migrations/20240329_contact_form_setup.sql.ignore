@@ -1,0 +1,130 @@
+-- Drop existing objects if they exist
+DROP TABLE IF EXISTS public.contact_messages CASCADE;
+DROP FUNCTION IF EXISTS public.handle_new_contact_message() CASCADE;
+
+-- Create contact_messages table
+CREATE TABLE public.contact_messages (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    subject VARCHAR(200) NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    status VARCHAR(20) DEFAULT 'pending',
+    recaptcha_token TEXT,
+    user_agent TEXT,
+    ip_address TEXT,
+    response_sent BOOLEAN DEFAULT FALSE,
+    response_sent_at TIMESTAMPTZ,
+    admin_notes TEXT
+);
+
+-- Add table comments
+COMMENT ON TABLE public.contact_messages IS 'Stores contact form submissions from website visitors';
+COMMENT ON COLUMN public.contact_messages.status IS 'Message status: pending, reviewed, responded, spam';
+
+-- Create updated_at trigger
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER set_updated_at
+    BEFORE UPDATE ON public.contact_messages
+    FOR EACH ROW
+    EXECUTE FUNCTION public.handle_updated_at();
+
+-- Create email notification function
+CREATE OR REPLACE FUNCTION public.handle_new_contact_message()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- You can customize this with your email service
+    PERFORM net.http_post(
+        url := 'https://api.sendgrid.com/v3/mail/send',
+        headers := jsonb_build_object(
+            'Authorization', 'Bearer ' || current_setting('app.sendgrid_key'),
+            'Content-Type', 'application/json'
+        ),
+        body := jsonb_build_object(
+            'personalizations', jsonb_build_array(
+                jsonb_build_object(
+                    'to', jsonb_build_array(
+                        jsonb_build_object(
+                            'email', 'friendlybattlegames@gmail.com',
+                            'name', 'Friendly Battle Games'
+                        )
+                    )
+                )
+            ),
+            'from', jsonb_build_object(
+                'email', 'noreply@friendlybattlegames.com',
+                'name', 'Contact Form'
+            ),
+            'subject', 'New Contact Form Message: ' || NEW.subject,
+            'content', jsonb_build_array(
+                jsonb_build_object(
+                    'type', 'text/html',
+                    'value', format(
+                        'New message from %s (%s):<br><br>Subject: %s<br><br>Message:<br>%s',
+                        NEW.name,
+                        NEW.email,
+                        NEW.subject,
+                        NEW.message
+                    )
+                )
+            )
+        )
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger for email notifications
+CREATE TRIGGER on_new_contact_message
+    AFTER INSERT ON public.contact_messages
+    FOR EACH ROW
+    EXECUTE FUNCTION public.handle_new_contact_message();
+
+-- Enable Row Level Security
+ALTER TABLE public.contact_messages ENABLE ROW LEVEL SECURITY;
+
+-- Create policies
+CREATE POLICY "Enable insert access for all users" ON public.contact_messages
+    FOR INSERT TO public
+    WITH CHECK (true);
+
+CREATE POLICY "Enable read access for authenticated users" ON public.contact_messages
+    FOR SELECT TO authenticated
+    USING (true);
+
+CREATE POLICY "Enable update for authenticated users" ON public.contact_messages
+    FOR UPDATE TO authenticated
+    USING (true)
+    WITH CHECK (true);
+
+-- Create indexes
+CREATE INDEX idx_contact_messages_created_at ON public.contact_messages(created_at);
+CREATE INDEX idx_contact_messages_status ON public.contact_messages(status);
+CREATE INDEX idx_contact_messages_email ON public.contact_messages(email);
+
+-- Create view for admin dashboard
+CREATE OR REPLACE VIEW public.contact_messages_summary AS
+SELECT 
+    DATE_TRUNC('day', created_at) AS date,
+    COUNT(*) AS total_messages,
+    COUNT(*) FILTER (WHERE status = 'pending') AS pending_messages,
+    COUNT(*) FILTER (WHERE status = 'responded') AS responded_messages,
+    COUNT(*) FILTER (WHERE status = 'spam') AS spam_messages
+FROM public.contact_messages
+GROUP BY DATE_TRUNC('day', created_at)
+ORDER BY date DESC;
+
+-- Grant permissions
+GRANT INSERT ON public.contact_messages TO anon;
+GRANT SELECT ON public.contact_messages TO authenticated;
+GRANT UPDATE ON public.contact_messages TO authenticated;
+GRANT SELECT ON public.contact_messages_summary TO authenticated;

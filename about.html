@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - FriendlyBattleGames</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/supabase-config.js" type="module" defer></script>
+    <script src="js/load-nav.js" defer></script>
+    <script src="js/nav-manager.js" type="module" defer></script>
+    <script src="js/avatar-manager.js" defer></script>
+    <style>
+        /* Simple card styles */
+        .content-card {
+            flex: 1 1 300px; /* Allow cards to grow/shrink, base size ~300px */
+            min-width: 280px; /* Minimum width before wrapping */
+            background-color: #f9f9f9; /* Light background for the card */
+            border: 1px solid #ddd; /* Subtle border */
+            border-radius: 8px; /* Rounded corners */
+            padding: 15px; /* Reduced padding */
+            margin-bottom: 20px; /* Keep bottom margin for vertical spacing */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Subtle shadow */
+        }
+        .content-card h2 {
+            margin-top: 0; /* Remove default top margin from heading */
+            color: #333; /* Darker heading color */
+        }
+        .content-card p {
+            /* Ensure text is dark enough for visibility */
+            line-height: 1.6; /* Improve readability */
+            color: #222; /* Darker grey text color */
+        }
+        /* Container for the cards */
+        .about-cards-container {
+            display: flex; /* Enable flexbox layout */
+            flex-wrap: wrap; /* Allow cards to wrap to the next line */
+            gap: 20px; /* Space between cards */
+            justify-content: center; /* Center cards if they don't fill the row */
+        }
+        .about-content {
+            /* Add padding to prevent overlap with nav/footer */
+            padding-top: 80px; /* Original top padding attempt (now handled by body padding) */
+            padding-bottom: 40px;
+            max-width: 900px; /* Limit width for better reading */
+            margin: 40px auto; /* Center content and add top/bottom margin */
+            padding: 0 20px; /* Add padding on smaller screens */
+        }
+        /* Style the main heading */
+        .about-content h1 {
+            text-align: center; /* Center the heading */
+            margin-bottom: 30px; /* Add space below the heading */
+            color: #333; /* Match heading color used in cards */
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Placeholder -->
+    <header>
+        <div id="nav-placeholder"></div>
+    </header>
+
+    <main class="about-content">
+        <h1>About FriendlyBattleGames</h1>
+        <p style="text-align: center; margin-bottom: 30px; color: #555;">Learn more about our mission, history, and the team behind the games.</p>
+
+        <!-- Wrap cards in a flex container -->
+        <div class="about-cards-container">
+
+            <div class="content-card">
+                <h2>Our Purpose</h2>
+                <p>We aim to inspire influencers and online personalities who stream video games to compete with each other in a safe, fair, and respectful environment. We believe competition can foster community when approached with the right mindset.</p>
+            </div>
+
+            <div class="content-card">
+                <h2>Our History</h2>
+                <p>FriendlyBattleGames began in 2020 with a simple goal: to show battle game competitors a new way to engage. We envisioned a space where the friendly bonds built *after* a match are just as important as the competition itself. We host battles and tournaments focused on this friendly environment, asking all participants to embrace our rules and concept. Our commitment is to ensure every event upholds safety and respect, building a positive battle game community together.</p>
+            </div>
+
+            <div class="content-card">
+                <h2>About the Organization</h2>
+                <p>FriendlyBattleGames is an original battle game event organizer representing a diverse community including online personalities, streaming platforms, gamers, athletes, and influencers who play for fun and camaraderie. Explore our consumer clothing store and join our organized battle game events and tournaments designed for friendly competition.</p>
+            </div>
+
+            <div class="content-card">
+                <h2>About the Team</h2>
+                <p>Our team is composed of passionate influencers, dedicated online personalities, experienced organizers, and engaging hosts. We actively stream, download, and participate in battle games, join global tournaments, and enjoy playing with friends. We stream for fun but always bring a competitive edge, embodying the spirit of FriendlyBattleGames.</p>
+            </div>
+
+        </div> <!-- Close about-cards-container -->
+
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Follow Us</h3>
+                    <div class="social-links">
+                        <a href="https://facebook.com/friendlybattlegames" target="_blank" aria-label="Facebook">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a href="https://instagram.com/friendlybattlegames" target="_blank" aria-label="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <p>&copy; 2025 FriendlyBattleGames. All rights reserved.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

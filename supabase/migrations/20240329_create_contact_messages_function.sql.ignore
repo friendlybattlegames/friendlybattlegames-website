@@ -1,0 +1,43 @@
+-- Create function to create contact_messages table
+CREATE OR REPLACE FUNCTION create_contact_messages_table()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    -- Check if table exists
+    IF NOT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'contact_messages') THEN
+        -- Create the table
+        CREATE TABLE public.contact_messages (
+            id BIGSERIAL PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            email VARCHAR(255) NOT NULL,
+            subject VARCHAR(200) NOT NULL,
+            message TEXT NOT NULL,
+            created_at TIMESTAMPTZ DEFAULT NOW(),
+            status VARCHAR(20) DEFAULT 'pending',
+            recaptcha_token TEXT,
+            user_agent TEXT
+        );
+
+        -- Create indexes
+        CREATE INDEX idx_contact_messages_created_at ON public.contact_messages(created_at);
+        CREATE INDEX idx_contact_messages_status ON public.contact_messages(status);
+
+        -- Enable RLS
+        ALTER TABLE public.contact_messages ENABLE ROW LEVEL SECURITY;
+
+        -- Create policies
+        CREATE POLICY "Allow anyone to insert contact messages"
+        ON public.contact_messages FOR INSERT
+        TO anon
+        WITH CHECK (true);
+
+        -- Only allow authenticated users with admin role to view messages
+        CREATE POLICY "Allow admins to view messages"
+        ON public.contact_messages FOR SELECT
+        TO authenticated
+        USING (auth.role() = 'admin');
+    END IF;
+END;
+$$;

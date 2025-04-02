@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - FriendlyBattleGames</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .blog-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .blog-post {
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .post-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        .post-content {
+            padding: 20px;
+        }
+
+        .post-content h2 {
+            margin: 0 0 10px;
+            color: #2c3e50;
+        }
+
+        .post-meta {
+            display: flex;
+            align-items: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        .author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
+            border: 2px solid #e74c3c;
+        }
+
+        .post-excerpt {
+            color: #34495e;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .read-more-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .read-more-btn:hover {
+            background: #c0392b;
+        }
+
+        .blog-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .full-blog-post {
+            margin-top: 20px;
+        }
+
+        .full-post-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .full-blog-post h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .full-blog-post .post-content {
+            color: #34495e;
+            line-height: 1.8;
+        }
+
+        .no-posts {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 50px;
+        }
+
+        @media (max-width: 768px) {
+            .blog-container {
+                padding: 10px;
+            }
+
+            .post-image {
+                height: 200px;
+            }
+
+            .author-avatar {
+                width: 30px;
+                height: 30px;
+            }
+        }
+    </style>
+    <script src="js/supabase-config.js" type="module" defer></script>
+    <script src="js/load-nav.js" defer></script>
+    <script src="js/nav-manager.js" type="module" defer></script>
+    <script src="js/avatar-manager.js" defer></script>
+    <script src="js/blog-manager.js" type="module" defer></script>
+</head>
+<body>
+    <div id="nav-placeholder"></div>
+
+    <div class="blog-container">
+        <h1>Latest Blog Posts</h1>
+        <div id="blog-posts">
+            <!-- Blog posts will be loaded here -->
+        </div>
+    </div>
+</body>
+</html>

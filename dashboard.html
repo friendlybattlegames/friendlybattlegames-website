@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - FriendlyBattleGames</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/supabase-config.js" type="module" defer></script>
+    <script src="js/load-nav.js" defer></script>
+    <script src="js/nav-manager.js" type="module" defer></script>
+    <script src="js/avatar-manager.js" defer></script>
+    <script src="js/avatar-gallery.js" defer></script>
+    <style>
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-section {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .avatar-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .avatar-container {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            padding: 1rem;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-container:hover {
+            border-color: #4CAF50;
+            background-color: rgba(76, 175, 80, 0.05);
+        }
+
+        .avatar-container.drag-over {
+            border-color: #4CAF50;
+            background-color: rgba(76, 175, 80, 0.1);
+        }
+
+        .avatar-large {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin-bottom: 1rem;
+            object-fit: cover;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .profile-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .success-message {
+            color: #4CAF50;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .error-message {
+            color: #f44336;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .avatar-gallery-section {
+            padding: 2rem 0;
+            background-color: #1a1a1a;
+        }
+
+        .avatar-gallery-section h2 {
+            color: white;
+            margin-bottom: 1.5rem;
+        }
+
+        .avatar-upload {
+            margin-bottom: 2rem;
+            text-align: right;
+        }
+
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem 0;
+        }
+
+        .avatar-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #2c3e50;
+            transition: transform 0.2s;
+        }
+
+        .avatar-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .avatar-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-actions {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: space-between;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .avatar-item:hover .avatar-actions {
+            opacity: 1;
+        }
+
+        .avatar-actions button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 5px 10px;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .avatar-actions button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .avatar-actions .delete-btn {
+            color: #ff4444;
+        }
+
+        .default-badge {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: #4CAF50;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .upload-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            transition: border-color 0.2s;
+        }
+
+        .upload-zone.dragover {
+            border-color: #4CAF50;
+        }
+
+        .upload-zone p {
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .avatar-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="nav-placeholder"></div>
+
+    <main class="dashboard">
+        <section id="profile-section" class="profile-section">
+            <h2>Profile</h2>
+            <div class="profile-info">
+                <div class="info-group">
+                    <label>Username:</label>
+                    <span id="username">Loading...</span>
+                </div>
+                <div class="info-group">
+                    <label>Email:</label>
+                    <span id="email">Loading...</span>
+                </div>
+                <div class="info-group">
+                    <label>Bio:</label>
+                    <span id="bio">Loading...</span>
+                </div>
+                <button id="edit-profile-btn" class="btn btn-primary">Edit Profile</button>
+            </div>
+        </section>
+
+        <section id="edit-section" class="edit-section" style="display: none;">
+            <h2>Edit Profile</h2>
+            <form id="edit-profile-form" class="edit-form">
+                <div class="form-group">
+                    <label for="edit-username">Username</label>
+                    <input type="text" id="edit-username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-email">Email</label>
+                    <input type="email" id="edit-email" name="email" required>
+                    <p class="help-text">Changing email will require verification</p>
+                </div>
+                <div class="form-group">
+                    <label for="edit-bio">Bio</label>
+                    <textarea id="edit-bio" name="bio" rows="4"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="button" id="cancel-edit-btn" class="btn btn-secondary">Cancel</button>
+                </div>
+                <div id="edit-message" class="message" style="display: none;"></div>
+            </form>
+        </section>
+
+        <section id="orders-section" class="orders-section">
+            <h2>Orders</h2>
+            <div id="orders-list" class="orders-list">
+                <p>Loading orders...</p>
+            </div>
+        </section>
+
+        <section class="avatar-gallery-section">
+            <div class="container">
+                <h2>Avatar Gallery</h2>
+                <div class="avatar-upload">
+                    <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
+                    <div class="upload-zone" id="upload-zone">
+                        <button id="upload-btn" class="btn btn-primary">Upload New Avatar</button>
+                        <p>or drag and drop an image here</p>
+                    </div>
+                </div>
+                <div id="avatar-message" class="message" style="display: none;"></div>
+                <div id="avatar-grid" class="avatar-grid">
+                    <!-- Avatars will be loaded here dynamically -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <style>
+        .profile-section, .edit-section, .orders-section {
+            background: #2c3e50;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            color: white;
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-info {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .info-group {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .info-group label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .info-group span {
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .edit-form {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .form-group input, .form-group textarea {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            padding: 0.75rem;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .orders-list {
+            color: white;
+        }
+
+        .order-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .order-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.9rem;
+        }
+
+        .order-status.pending {
+            background: #ffd700;
+            color: black;
+        }
+
+        .order-status.completed {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .order-status.cancelled {
+            background: #ff4444;
+            color: white;
+        }
+
+        .order-items {
+            display: grid;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .order-product {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .order-product img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .product-details h4 {
+            margin: 0;
+            color: white;
+        }
+
+        .product-details p {
+            margin: 0.25rem 0;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .order-total {
+            text-align: right;
+            font-weight: bold;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                padding: 1rem;
+            }
+
+            .profile-section, .edit-section, .orders-section {
+                padding: 1.5rem;
+            }
+
+            .order-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+
+    <style>
+        .help-text {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        .message {
+            margin: 1rem 0;
+            padding: 0.75rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .message.success {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            border: 1px solid rgba(76, 175, 80, 0.2);
+        }
+
+        .message.error {
+            background: rgba(244, 67, 54, 0.1);
+            color: #f44336;
+            border: 1px solid rgba(244, 67, 54, 0.2);
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const supabase = await window.getSupabase();
+                console.log('Dashboard: Supabase ready.');
+
+                // Get initial session
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                await loadProfile(supabase, session.user.id);
+                await loadOrders(supabase, session.user.id);
+
+            } catch (error) {
+                console.error('Dashboard initialization error:', error);
+            }
+        });
+
+        async function loadProfile(supabase, userId) {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', userId)
+                    .single();
+
+                if (error) throw error;
+
+                if (profile) {
+                    document.getElementById('username').textContent = profile.username || 'User';
+                    document.getElementById('email').textContent = user.email || 'No email set';
+                    document.getElementById('bio').textContent = profile.bio || 'No bio set';
+                    
+                    // Update edit form
+                    const editForm = document.getElementById('edit-profile-form');
+                    if (editForm) {
+                        document.getElementById('edit-username').value = profile.username || '';
+                        document.getElementById('edit-email').value = user.email || '';
+                        document.getElementById('edit-bio').value = profile.bio || '';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        async function loadOrders(supabase, userId) {
+            try {
+                const { data: orders, error } = await supabase
+                    .from('orders')
+                    .select(`
+                        *,
+                        order_items (
+                            *,
+                            products (*)
+                        )
+                    `)
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const ordersList = document.getElementById('orders-list');
+                if (!orders || orders.length === 0) {
+                    ordersList.innerHTML = '<p class="no-orders">No orders found</p>';
+                    return;
+                }
+
+                ordersList.innerHTML = orders.map(order => `
+                    <div class="order-item">
+                        <div class="order-header">
+                            <h3>Order #${order.id}</h3>
+                            <span class="order-date">${new Date(order.created_at).toLocaleDateString()}</span>
+                            <span class="order-status ${order.status}">${order.status}</span>
+                        </div>
+                        <div class="order-items">
+                            ${order.order_items.map(item => `
+                                <div class="order-product">
+                                    <img src="${item.products.image_url}" alt="${item.products.name}">
+                                    <div class="product-details">
+                                        <h4>${item.products.name}</h4>
+                                        <p>Quantity: ${item.quantity}</p>
+                                        <p>Price: $${(item.price_at_time / 100).toFixed(2)}</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="order-total">
+                            Total: $${(order.total_amount / 100).toFixed(2)}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                document.getElementById('orders-list').innerHTML = '<p class="error">Error loading orders</p>';
+            }
+        }
+
+        // Update form submission to handle email change
+        const editForm = document.getElementById('edit-profile-form');
+        if (editForm) {
+            editForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const messageEl = document.getElementById('edit-message');
+                messageEl.style.display = 'none';
+                messageEl.className = 'message';
+
+                try {
+                    const supabase = await window.getSupabase();
+                    const { data: { user } } = await supabase.auth.getUser();
+                    
+                    if (!user) throw new Error('No user found');
+
+                    const newEmail = document.getElementById('edit-email').value;
+                    const currentEmail = user.email;
+
+                    // Handle email update if changed
+                    if (newEmail !== currentEmail) {
+                        const { error: emailError } = await supabase.auth.updateUser({
+                            email: newEmail
+                        });
+
+                        if (emailError) throw emailError;
+                    }
+
+                    // Update profile data
+                    const updates = {
+                        username: document.getElementById('edit-username').value,
+                        bio: document.getElementById('edit-bio').value,
+                        updated_at: new Date()
+                    };
+
+                    const { error } = await supabase
+                        .from('profiles')
+                        .update(updates)
+                        .eq('id', user.id);
+
+                    if (error) throw error;
+
+                    // Show success message
+                    messageEl.textContent = newEmail !== currentEmail ? 
+                        'Profile updated! Please check your email to verify the new address.' :
+                        'Profile updated successfully!';
+                    messageEl.classList.add('success');
+                    messageEl.style.display = 'block';
+
+                    // Reload profile data
+                    await loadProfile(supabase, user.id);
+                    
+                    // Hide edit form after a delay
+                    setTimeout(() => {
+                        document.getElementById('edit-section').style.display = 'none';
+                        document.getElementById('profile-section').style.display = 'block';
+                    }, 2000);
+
+                } catch (error) {
+                    console.error('Error updating profile:', error);
+                    messageEl.textContent = error.message;
+                    messageEl.classList.add('error');
+                    messageEl.style.display = 'block';
+                }
+            });
+        }
+
+        // Show/hide edit form
+        const editButton = document.getElementById('edit-profile-btn');
+        if (editButton) {
+            editButton.addEventListener('click', () => {
+                document.getElementById('profile-section').style.display = 'none';
+                document.getElementById('edit-section').style.display = 'block';
+            });
+        }
+
+        const cancelButton = document.getElementById('cancel-edit-btn');
+        if (cancelButton) {
+            cancelButton.addEventListener('click', () => {
+                document.getElementById('edit-section').style.display = 'none';
+                document.getElementById('profile-section').style.display = 'block';
+            });
+        }
+    </script>
+
+    <script>
+        // Add drag and drop support
+        const uploadZone = document.getElementById('upload-zone');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            uploadZone.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            uploadZone.classList.remove('dragover');
+        }
+
+        uploadZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const file = dt.files[0];
+            
+            if (file && window.avatarGallery) {
+                window.avatarGallery.uploadAvatar(file);
+            }
+        }
+    </script>
+</body>
+</html>

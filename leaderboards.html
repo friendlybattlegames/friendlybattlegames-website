@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboards - FriendlyBattleGames</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/supabase-config.js" type="module" defer></script>
+    <script src="js/load-nav.js" defer></script>
+    <script src="js/nav-manager.js" type="module" defer></script>
+    <script src="js/avatar-manager.js" defer></script>
+    <script src="js/init-games.js" defer></script>
+    <style>
+        .leaderboard-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .game-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .game-tab {
+            padding: 10px 20px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .game-tab.active {
+            background: #e74c3c;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .leaderboard-table th {
+            background: #34495e;
+            color: white;
+            font-weight: bold;
+        }
+
+        .leaderboard-table tr:hover {
+            background: #f5f6fa;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar-small {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .rank {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .score {
+            font-weight: bold;
+            color: #2ecc71;
+        }
+
+        .no-scores {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div id="nav-placeholder"></div>
+
+    <div class="leaderboard-container">
+        <h1>Arcade Leaderboards</h1>
+        <div class="game-tabs" id="game-tabs">
+            <!-- Game tabs will be populated here -->
+        </div>
+        <table class="leaderboard-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Score</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+                <!-- Leaderboard entries will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Wait for Supabase initialization
+                const supabaseClient = await window.getSupabase();
+
+                // First try to fetch games from the database
+                const { data: games, error: gamesError } = await supabaseClient
+                    .from('games')
+                    .select('*')
+                    .order('title');
+
+                if (gamesError) {
+                    console.error('Error fetching games:', gamesError);
+                    return;
+                }
+
+                if (games && games.length > 0) {
+                    initializeGames(games);
+                }
+            } catch (error) {
+                console.error('Error in initialization:', error);
+            }
+        });
+
+        function initializeGames(games) {
+            // Populate game tabs
+            const tabsContainer = document.getElementById('game-tabs');
+            tabsContainer.innerHTML = ''; // Clear any existing tabs
+            
+            games.forEach((game, index) => {
+                const button = document.createElement('button');
+                button.className = `game-tab ${index === 0 ? 'active' : ''}`;
+                button.textContent = game.title;
+                button.dataset.gameName = game.game_name;
+                button.onclick = () => loadLeaderboard(game.game_name);
+                tabsContainer.appendChild(button);
+            });
+
+            // Load initial game leaderboard
+            if (games.length > 0) {
+                loadLeaderboard(games[0].game_name);
+            }
+        }
+
+        async function loadLeaderboard(gameName) {
+            try {
+                // Get Supabase client
+                const supabaseClient = await window.getSupabase();
+
+                // Update active tab
+                document.querySelectorAll('.game-tab').forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.gameName === gameName);
+                });
+
+                // First get all scores for this game
+                const { data: scores, error: scoresError } = await supabaseClient
+                    .from('leaderboard')
+                    .select(`
+                        *,
+                        profiles (
+                            username,
+                            avatar_url
+                        )
+                    `)
+                    .eq('game_name', gameName)
+                    .order('score', { ascending: false })
+                    .limit(100);
+
+                if (scoresError) {
+                    console.error('Error fetching scores:', scoresError);
+                    return;
+                }
+
+                const tbody = document.getElementById('leaderboard-body');
+                tbody.innerHTML = '';
+
+                if (!scores || scores.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="no-scores">
+                                No scores yet. Be the first to play!
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                scores.forEach((entry, index) => {
+                    const profile = entry.profiles || {};
+                    const tr = document.createElement('tr');
+                    
+                    // Format date using timestamp
+                    let scoreDate = 'Invalid Date';
+                    if (entry.created_at) {
+                        try {
+                            const date = new Date(entry.created_at);
+                            if (!isNaN(date.getTime())) {
+                                scoreDate = date.toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                });
+                            }
+                        } catch (e) {
+                            console.error('Error formatting date:', e);
+                        }
+                    }
+
+                    tr.innerHTML = `
+                        <td class="rank">#${index + 1}</td>
+                        <td>
+                            <div class="player-info">
+                                <img src="${profile.avatar_url || 'images/default-avatar.png'}" alt="Avatar" class="avatar-small">
+                                <span>${profile.username || 'Anonymous'}</span>
+                            </div>
+                        </td>
+                        <td class="score">${entry.score}</td>
+                        <td>${scoreDate}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+            }
+        }
+    </script>
+</body>
+</html>

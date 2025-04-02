@@ -1,0 +1,27 @@
+-- Create contact_messages table
+CREATE TABLE IF NOT EXISTS public.contact_messages (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    subject VARCHAR(200) NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    status VARCHAR(20) DEFAULT 'pending',
+    recaptcha_token TEXT,
+    user_agent TEXT
+);
+
+-- Enable RLS
+ALTER TABLE public.contact_messages ENABLE ROW LEVEL SECURITY;
+
+-- Create policy to allow anyone to insert
+CREATE POLICY "Allow anyone to insert contact messages"
+ON public.contact_messages FOR INSERT
+TO public
+WITH CHECK (true);
+
+-- Create policy to allow authenticated users to view messages
+CREATE POLICY "Allow authenticated users to view messages"
+ON public.contact_messages FOR SELECT
+TO authenticated
+USING (true);

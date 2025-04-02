@@ -1,0 +1,91 @@
+-- Drop existing objects if they exist
+DROP TABLE IF EXISTS public.contact_messages CASCADE;
+DROP FUNCTION IF EXISTS public.handle_new_message() CASCADE;
+
+-- Create contact_messages table
+CREATE TABLE public.contact_messages (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    subject VARCHAR(200) NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    status VARCHAR(20) DEFAULT 'pending',
+    recaptcha_token TEXT,
+    user_agent TEXT
+);
+
+-- Create notification function
+CREATE OR REPLACE FUNCTION public.handle_new_message()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Send email notification using pg_net
+    PERFORM net.http_post(
+        url := 'https://api.sendgrid.com/v3/mail/send',
+        headers := jsonb_build_object(
+            'Authorization', 'Bearer ' || current_setting('app.settings.sendgrid_key'),
+            'Content-Type', 'application/json'
+        ),
+        body := jsonb_build_object(
+            'personalizations', jsonb_build_array(
+                jsonb_build_object(
+                    'to', jsonb_build_array(
+                        jsonb_build_object(
+                            'email', 'friendlybattlegames@gmail.com',
+                            'name', 'Friendly Battle Games'
+                        )
+                    )
+                )
+            ),
+            'from', jsonb_build_object(
+                'email', 'noreply@friendlybattlegames.com',
+                'name', 'Contact Form'
+            ),
+            'subject', 'New Contact Form Message: ' || NEW.subject,
+            'content', jsonb_build_array(
+                jsonb_build_object(
+                    'type', 'text/html',
+                    'value', format(
+                        'New message received from the contact form:<br><br>'
+                        'From: %s (%s)<br>'
+                        'Subject: %s<br><br>'
+                        'Message:<br>%s<br><br>'
+                        'Sent at: %s',
+                        NEW.name,
+                        NEW.email,
+                        NEW.subject,
+                        NEW.message,
+                        NEW.created_at
+                    )
+                )
+            )
+        )
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create notification trigger
+CREATE TRIGGER on_new_message
+    AFTER INSERT ON public.contact_messages
+    FOR EACH ROW
+    EXECUTE FUNCTION public.handle_new_message();
+
+-- Enable RLS
+ALTER TABLE public.contact_messages ENABLE ROW LEVEL SECURITY;
+
+-- Create policies
+DROP POLICY IF EXISTS "Allow public insert" ON public.contact_messages;
+CREATE POLICY "Allow public insert"
+ON public.contact_messages
+FOR INSERT TO public
+WITH CHECK (true);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_contact_messages_created_at ON public.contact_messages(created_at);
+CREATE INDEX IF NOT EXISTS idx_contact_messages_status ON public.contact_messages(status);
+
+-- Grant permissions
+GRANT USAGE ON SCHEMA public TO anon;
+GRANT ALL ON public.contact_messages TO anon;
+GRANT USAGE ON SEQUENCE contact_messages_id_seq TO anon;

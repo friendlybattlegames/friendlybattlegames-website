@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Placeholder Images</title>
+</head>
+<body>
+    <canvas id="canvas" width="200" height="200"></canvas>
+    <script>
+        const images = [
+            { name: 'logo.png', text: 'FBG', bg: '#4a90e2' },
+            { name: 'snake.jpg', text: 'Snake', bg: '#2ecc71' },
+            { name: 'memory.jpg', text: 'Memory', bg: '#e74c3c' },
+            { name: 'space-shooter.jpg', text: 'Space', bg: '#9b59b6' }
+        ];
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function generateImage(config) {
+            ctx.fillStyle = config.bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 40px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(config.text, canvas.width/2, canvas.height/2);
+
+            const link = document.createElement('a');
+            link.download = config.name;
+            link.href = canvas.toDataURL('image/jpeg', 0.8);
+            link.click();
+        }
+
+        let index = 0;
+        function processNext() {
+            if (index < images.length) {
+                generateImage(images[index]);
+                index++;
+                setTimeout(processNext, 500);
+            }
+        }
+
+        processNext();
+    </script>
+</body>
+</html>
