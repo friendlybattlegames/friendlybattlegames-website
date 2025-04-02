@@ -110,24 +110,44 @@ class NavManager {
 }
 
 // Handle sign out functionality
-document.addEventListener('click', async (e) => {
-    if (e.target && e.target.id === 'dropdown-signout') {
-        e.preventDefault();
-        try {
-            const supabase = await window.getSupabase();
-            const { error } = await supabase.auth.signOut();
-            if (error) throw error;
-            
-            // Redirect to home page after successful sign out
-            window.location.href = 'index.html';
-        } catch (error) {
-            console.error('Error signing out:', error.message);
-        }
-    }
-});
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuButton = document.querySelector('.mobile-menu-button');
+    const mobileNav = document.querySelector('.mobile-nav');
+    const navLinks = document.querySelector('.nav-links');
 
-// Initialize NavManager when the DOM is loaded and Supabase is ready
-document.addEventListener('DOMContentLoaded', () => {
+    // Clone nav links for mobile menu
+    if (navLinks && mobileNav) {
+        mobileNav.innerHTML = navLinks.innerHTML;
+    }
+
+    // Toggle mobile menu
+    if (mobileMenuButton) {
+        mobileMenuButton.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+            mobileMenuButton.setAttribute('aria-expanded', 
+                mobileMenuButton.getAttribute('aria-expanded') === 'true' ? 'false' : 'true'
+            );
+        });
+    }
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (mobileNav && mobileNav.classList.contains('active') && 
+            !mobileNav.contains(e.target) && 
+            !mobileMenuButton.contains(e.target)) {
+            mobileNav.classList.remove('active');
+            mobileMenuButton.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    // Close mobile menu when window is resized to desktop size
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 768 && mobileNav.classList.contains('active')) {
+            mobileNav.classList.remove('active');
+            mobileMenuButton.setAttribute('aria-expanded', 'false');
+        }
+    });
+
     const checkSupabase = async () => {
         try {
             if (window.getSupabase) {
@@ -141,4 +161,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     checkSupabase();
+
+    // Handle sign out
+    document.addEventListener('click', async (e) => {
+        if (e.target && e.target.id === 'dropdown-signout') {
+            e.preventDefault();
+            const supabase = await window.getSupabase();
+            const { error } = await supabase.auth.signOut();
+            if (!error) {
+                window.location.href = '/index.html';
+            }
+        }
+    });
 });
