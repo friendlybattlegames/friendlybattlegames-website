@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - FriendlyBattleGames</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="style.css">
+    <title>FriendlyBattleGames - Dashboard</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="js/supabase-config.js" type="module" defer></script>
-    <script src="js/load-nav.js" defer></script>
-    <script src="js/nav-manager.js" type="module" defer></script>
-    <script src="js/avatar-manager.js" defer></script>
-    <script src="js/avatar-gallery.js" defer></script>
+    <script src="/js/supabase-config.js" type="module" defer></script>
+    <script src="/js/load-nav.js" defer></script>
+    <script src="/js/nav-manager.js" type="module" defer></script>
+    <script src="/js/avatar-manager.js" defer></script>
+    <script src="/js/avatar-gallery.js" defer></script>
     <style>
         .dashboard {
             max-width: 1200px;
@@ -516,7 +517,7 @@
                 // Get initial session
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session) {
-                    window.location.href = 'login.html';
+                    window.location.href = '/login.html';
                     return;
                 }
 
