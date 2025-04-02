@@ -226,19 +226,26 @@
     @media screen and (max-width: 768px) {
         .mobile-menu-toggle {
             display: block;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            padding: 5px;
+            cursor: pointer;
         }
 
         .nav-links {
             display: none;
             position: absolute;
-            top: 80px;
+            top: var(--nav-height);
             left: 0;
             right: 0;
             background: #1a1a1a;
             flex-direction: column;
-            padding: 20px;
+            padding: 10px 0;
+            gap: 0;
+            margin: 0;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            z-index: 1000;
         }
 
         .nav-links.active {
@@ -247,34 +254,61 @@
 
         .nav-links a {
             width: 100%;
-            text-align: center;
-            padding: 12px 0;
+            padding: 15px 20px;
+            text-align: left;
         }
 
-        .nav-links a::after {
+        .nav-right {
+            position: relative;
+        }
+
+        .user-section {
+            position: static;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: calc(var(--nav-height) - 10px);
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            border-radius: 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 0;
+            z-index: 1001;
+        }
+
+        .user-section.active .dropdown-content {
+            display: block;
+        }
+
+        .dropdown-content a {
+            color: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .dropdown-content a:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-arrow {
             display: none;
         }
 
-        .logo img {
-            height: 50px;
-            margin-left: 10px;
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: pointer;
         }
 
-        .auth-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 6px 12px;
-            font-size: 14px;
-        }
-
-        #view-toggle {
-            bottom: 15px;
-            right: 15px;
-            padding: 8px 12px;
-            font-size: 14px;
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
     }
 </style>
@@ -288,17 +322,31 @@ function toggleMobileMenu() {
 document.addEventListener('DOMContentLoaded', function() {
     const userSection = document.querySelector('.user-section');
     const avatarImg = document.getElementById('avatar-img');
+    const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+    const navLinks = document.getElementById('nav-links');
 
-    if (userSection) {
+    if (userSection && avatarImg) {
         avatarImg.addEventListener('click', function(e) {
             e.stopPropagation();
+            // Close mobile menu if open
+            navLinks.classList.remove('active');
+            // Toggle user dropdown
             userSection.classList.toggle('active');
         });
 
+        // Close dropdowns when clicking outside
         document.addEventListener('click', function(e) {
-            if (!userSection.contains(e.target)) {
+            if (!userSection.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
                 userSection.classList.remove('active');
+                if (!navLinks.contains(e.target)) {
+                    navLinks.classList.remove('active');
+                }
             }
+        });
+
+        // Close user dropdown when opening mobile menu
+        mobileMenuToggle.addEventListener('click', function() {
+            userSection.classList.remove('active');
         });
     }
 });
