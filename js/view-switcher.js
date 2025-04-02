@@ -6,16 +6,16 @@ function toggleView() {
     
     if (!isMobileView) {
         // Switch to mobile view
-        viewport.setAttribute('content', 'width=device-width, initial-scale=0.5, maximum-scale=0.5');
-        document.documentElement.style.zoom = "0.5";
+        viewport.setAttribute('content', 'width=device-width, initial-scale=0.6, maximum-scale=0.6');
         toggleButton.innerHTML = '<i class="fas fa-mobile-alt"></i> Mobile View';
         localStorage.setItem('preferredView', 'mobile');
+        document.body.classList.add('mobile-view');
     } else {
         // Switch to desktop view
         viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
-        document.documentElement.style.zoom = "1";
         toggleButton.innerHTML = '<i class="fas fa-desktop"></i> Desktop View';
         localStorage.setItem('preferredView', 'desktop');
+        document.body.classList.remove('mobile-view');
     }
 }
 
@@ -26,12 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const preferredView = localStorage.getItem('preferredView') || 'desktop';
     
     if (preferredView === 'mobile') {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=0.5, maximum-scale=0.5');
-        document.documentElement.style.zoom = "0.5";
+        viewport.setAttribute('content', 'width=device-width, initial-scale=0.6, maximum-scale=0.6');
         toggleButton.innerHTML = '<i class="fas fa-mobile-alt"></i> Mobile View';
+        document.body.classList.add('mobile-view');
     } else {
         viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
-        document.documentElement.style.zoom = "1";
         toggleButton.innerHTML = '<i class="fas fa-desktop"></i> Desktop View';
+        document.body.classList.remove('mobile-view');
     }
 });
