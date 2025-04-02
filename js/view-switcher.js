@@ -6,18 +6,14 @@ function toggleView() {
     
     if (!isMobileView) {
         // Switch to mobile view
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
-        document.body.style.transform = 'scale(0.6)';
-        document.body.style.transformOrigin = 'top left';
-        document.body.style.width = '166.67%'; // 1/0.6 * 100%
+        viewport.setAttribute('content', 'width=device-width, initial-scale=0.5, maximum-scale=0.5');
+        document.documentElement.style.zoom = "0.5";
         toggleButton.innerHTML = '<i class="fas fa-mobile-alt"></i> Mobile View';
         localStorage.setItem('preferredView', 'mobile');
     } else {
         // Switch to desktop view
         viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
-        document.body.style.transform = '';
-        document.body.style.transformOrigin = '';
-        document.body.style.width = '';
+        document.documentElement.style.zoom = "1";
         toggleButton.innerHTML = '<i class="fas fa-desktop"></i> Desktop View';
         localStorage.setItem('preferredView', 'desktop');
     }
@@ -30,16 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const preferredView = localStorage.getItem('preferredView') || 'desktop';
     
     if (preferredView === 'mobile') {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
-        document.body.style.transform = 'scale(0.6)';
-        document.body.style.transformOrigin = 'top left';
-        document.body.style.width = '166.67%'; // 1/0.6 * 100%
+        viewport.setAttribute('content', 'width=device-width, initial-scale=0.5, maximum-scale=0.5');
+        document.documentElement.style.zoom = "0.5";
         toggleButton.innerHTML = '<i class="fas fa-mobile-alt"></i> Mobile View';
     } else {
         viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
-        document.body.style.transform = '';
-        document.body.style.transformOrigin = '';
-        document.body.style.width = '';
+        document.documentElement.style.zoom = "1";
         toggleButton.innerHTML = '<i class="fas fa-desktop"></i> Desktop View';
     }
 });
