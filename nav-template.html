@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <nav>
     <div class="nav-container">
-        <button class="mobile-menu-toggle" id="mobile-menu-toggle">
-            <i class="fas fa-bars" id="menu-icon"></i>
+        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+            <i class="fas fa-bars"></i>
         </button>
         <div class="nav-left">
             <a href="index.html" class="logo">
@@ -243,55 +243,32 @@
         }
 
         .mobile-menu-toggle {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 10px;
-            z-index: 1001;
-            height: 40px;
-            width: 40px;
+            display: block;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
         }
 
         .nav-links {
             display: none;
-            position: fixed;
-            top: var(--nav-height);
+            position: absolute;
+            top: 80px;
             left: 0;
             right: 0;
             background: #1a1a1a;
             flex-direction: column;
-            padding: 0;
-            margin: 0;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            z-index: 1000;
-            max-height: calc(100vh - var(--nav-height));
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            opacity: 0;
-            transform: translateY(-10px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
+            padding: 10px 0;
         }
 
         .nav-links.active {
             display: flex;
-            opacity: 1;
-            transform: translateY(0);
         }
 
         .nav-links a {
+            padding: 10px 20px;
             width: 100%;
-            padding: 15px 20px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            transition: background-color 0.3s ease;
-        }
-
-        .nav-links a:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-links a:last-child {
-            border-bottom: none;
         }
 
         .nav-right {
@@ -424,19 +401,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function toggleMobileMenu() {
     const navLinks = document.getElementById('nav-links');
-    const menuIcon = document.getElementById('menu-icon');
-    
-    if (navLinks && menuIcon) {
-        navLinks.classList.toggle('active');
-        
-        // Toggle between hamburger and close icons
-        if (navLinks.classList.contains('active')) {
-            menuIcon.classList.remove('fa-bars');
-            menuIcon.classList.add('fa-times');
-        } else {
-            menuIcon.classList.remove('fa-times');
-            menuIcon.classList.add('fa-bars');
-        }
-    }
+    navLinks.classList.toggle('active');
+}
+
+function toggleView() {
+    // Add toggle view functionality here
 }
 </script>
