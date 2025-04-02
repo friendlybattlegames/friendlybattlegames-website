@@ -9,12 +9,12 @@ class NavManager {
         // Initial session check
         const { data: { session } } = await this.supabase.auth.getSession();
         console.log('NavManager: Initial session check:', session);
-        this.setupNav(session);
+        await this.setupNav(session);
 
         // Listen for auth state changes
-        this.supabase.auth.onAuthStateChange((event, session) => {
+        this.supabase.auth.onAuthStateChange(async (event, session) => {
             console.log('NavManager: Auth event:', event, 'Session:', session);
-            this.setupNav(session);
+            await this.setupNav(session);
         });
     }
 
@@ -44,6 +44,9 @@ class NavManager {
                 console.log('NavManager: Found user profile:', profile);
                 if (avatar) {
                     avatar.src = profile.avatar_url || 'images/default-avatar.png';
+                    avatar.onerror = () => {
+                        avatar.src = 'images/default-avatar.png';
+                    };
                 }
             }
 
@@ -70,6 +73,7 @@ class NavManager {
         } else {
             if (avatar) {
                 avatar.src = 'images/default-avatar.png';
+                avatar.onclick = null;
             }
             userSection.style.display = 'none';
             authButtons.style.display = 'flex';
@@ -140,11 +144,17 @@ document.addEventListener('click', async (e) => {
             // Reset avatar and hide dropdown before redirect
             const avatar = document.getElementById('avatar-img');
             const dropdownContent = document.querySelector('.dropdown-content');
+            const userSection = document.getElementById('user-section');
+            
             if (avatar) {
                 avatar.src = 'images/default-avatar.png';
+                avatar.onclick = null;
             }
             if (dropdownContent) {
                 dropdownContent.classList.remove('show');
+            }
+            if (userSection) {
+                userSection.style.display = 'none';
             }
             window.location.href = 'index.html';
         }
