@@ -104,26 +104,28 @@
                 </div>
             </div>
             <canvas id="game-canvas"></canvas>
-            <div class="game-controls-overlay">
-                <div class="mobile-controls">
-                    <div class="d-pad">
-                        <button id="up-btn" class="d-pad-btn up">
-                            <i class="fas fa-chevron-up"></i>
-                        </button>
-                        <button id="left-btn" class="d-pad-btn left">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button id="right-btn" class="d-pad-btn right">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                        <button id="down-btn" class="d-pad-btn down">
-                            <i class="fas fa-chevron-down"></i>
-                        </button>
-                    </div>
-                    <button id="action-btn" class="action-btn">
-                        <i class="fas fa-crosshairs"></i>
+        </div>
+
+        <!-- Mobile Controls -->
+        <div class="game-controls-overlay">
+            <div class="mobile-controls">
+                <div class="d-pad">
+                    <button id="up-btn" class="d-pad-btn up">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                    <button id="left-btn" class="d-pad-btn left">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button id="right-btn" class="d-pad-btn right">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <button id="down-btn" class="d-pad-btn down">
+                        <i class="fas fa-chevron-down"></i>
                     </button>
                 </div>
+                <button id="action-btn" class="action-btn">
+                    <i class="fas fa-crosshairs"></i>
+                </button>
             </div>
         </div>
     </main>
@@ -229,11 +231,11 @@
         overflow: hidden;
         box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         z-index: 1000;
+        flex-direction: column;
     }
 
     .game-container.active {
         display: flex;
-        flex-direction: column;
     }
 
     .game-header {
@@ -368,11 +370,11 @@
         }
 
         .game-controls-overlay {
-            display: block;
+            display: block !important;
         }
 
         .mobile-controls {
-            display: flex;
+            display: flex !important;
         }
 
         #game-canvas {
@@ -388,13 +390,39 @@
         }
     }
 
-    .body.mobile-view .game-controls-overlay {
-        display: block;
+    .mobile-view .game-controls-overlay {
+        display: block !important;
     }
 
-    .body.mobile-view .mobile-controls {
-        display: flex;
+    .mobile-view .mobile-controls {
+        display: flex !important;
     }
     </style>
+
+    <script>
+    // Show mobile controls when a game is active
+    document.addEventListener('DOMContentLoaded', () => {
+        const gameContainer = document.getElementById('game-container');
+        const gameControlsOverlay = document.querySelector('.game-controls-overlay');
+        const mobileControls = document.querySelector('.mobile-controls');
+
+        // Watch for game container visibility changes
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                    if (gameContainer.style.display !== 'none') {
+                        gameControlsOverlay.style.display = 'block';
+                        mobileControls.style.display = 'flex';
+                    } else {
+                        gameControlsOverlay.style.display = 'none';
+                        mobileControls.style.display = 'none';
+                    }
+                }
+            });
+        });
+
+        observer.observe(gameContainer, { attributes: true });
+    });
+    </script>
 </body>
 </html>
