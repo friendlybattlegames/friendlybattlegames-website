@@ -12,6 +12,7 @@
     <script src="js/nav-manager.js" type="module" defer></script> 
     <script src="js/avatar-manager.js" defer></script>
     <script src="js/load-nav.js" defer></script>
+    <script src="js/view-switcher.js" defer></script>
     <!-- Load game-specific logic first -->
     <script src="js/space-shooter-game.js" type="module" defer></script>
     <!-- Add other game scripts here later, e.g., <script src="js/snake-game.js" defer></script> -->
@@ -91,18 +92,40 @@
             </div>
         </section>
 
-        <!-- Game Display Area (Initially Hidden) -->
-        <div id="game-container" class="game-container" style="display: none;">
+        <!-- Game Display Area -->
+        <div id="game-container" class="game-container">
             <div class="game-header">
-                <button class="close-btn" onclick="closeGame()">&times;</button>
-                <div class="game-stats">
-                    <div class="stat">Score: <span id="current-score">0</span></div>
-                    <div class="stat">High Score: <span id="high-score">0</span></div>
+                <button id="close-game" class="close-button">
+                    <i class="fas fa-times"></i> Close Game
+                </button>
+                <div class="game-info">
+                    <span id="current-score">Score: 0</span>
+                    <span id="high-score">High Score: 0</span>
                 </div>
             </div>
-            <canvas id="gameCanvas"></canvas>
+            <canvas id="game-canvas"></canvas>
+            <div class="game-controls-overlay">
+                <div class="mobile-controls">
+                    <div class="d-pad">
+                        <button id="up-btn" class="d-pad-btn up">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <button id="left-btn" class="d-pad-btn left">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button id="right-btn" class="d-pad-btn right">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <button id="down-btn" class="d-pad-btn down">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                    <button id="action-btn" class="action-btn">
+                        <i class="fas fa-crosshairs"></i>
+                    </button>
+                </div>
+            </div>
         </div>
-
     </main>
 
     <footer>
@@ -110,681 +133,232 @@
             <div class="footer-content">
                 <p>&copy; 2025 FriendlyBattleGames. All rights reserved.</p>
                 <div class="social-links">
-                    <a href="https://www.instagram.com/friendlybattlegames" target="_blank">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                    <a href="https://www.facebook.com/friendlybattlegames" target="_blank">
-                        <i class="fab fa-facebook"></i>
-                    </a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-discord"></i></a>
                 </div>
             </div>
         </div>
     </footer>
 
-    <!-- Game Modal -->
-    <div class="game-modal" id="gameModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="gameTitle">Game Title</h2>
-                <div class="game-controls">
-                    <button id="pauseGame" class="control-button">
-                        <i class="fas fa-pause"></i>
-                    </button>
-                    <button id="restartGame" class="control-button">
-                        <i class="fas fa-redo"></i>
-                    </button>
-                    <button class="close-modal" id="closeModal">&times;</button>
-                </div>
-            </div>
-            <div class="game-container" id="gameContainer">
-                <canvas id="gameCanvas"></canvas>
-                <div id="pauseOverlay" class="pause-overlay hidden">
-                    <div class="pause-content">
-                        <h3>Game Paused</h3>
-                        <p>Press Space to Resume</p>
-                    </div>
-                </div>
-            </div>
-            <div class="game-stats">
-                <div class="stat-group">
-                    <span class="stat-label">Score:</span>
-                    <span id="currentScore" class="stat-value">0</span>
-                </div>
-                <div class="stat-group">
-                    <span class="stat-label">High Score:</span>
-                    <span id="highScore" class="stat-value">0</span>
-                </div>
-                <div class="stat-group">
-                    <span class="stat-label">Time:</span>
-                    <span id="gameTime" class="stat-value">0:00</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <style>
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
+    :root {
+        --game-width: min(100vw - 40px, 800px);
+        --game-height: min(calc(100vh - 200px), 600px);
+    }
 
-        /* Navigation */
-        nav {
-            background: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 1rem 0;
-        }
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
 
-        nav .container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
+    .hero-section {
+        text-align: center;
+        padding: 4rem 0;
+        background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+        color: white;
+    }
 
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 2.5rem;
-            margin: 0 3rem;
-        }
+    .game-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        padding: 2rem 0;
+    }
 
-        .nav-links a {
-            text-decoration: none;
-            color: #333;
-            font-weight: 500;
-            transition: color 0.2s;
-            padding: 0.5rem 0;
-        }
+    .game-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
 
-        .nav-links a:hover {
-            color: #4CAF50;
-        }
+    .game-card:hover {
+        transform: translateY(-5px);
+    }
 
-        .nav-links a.active {
-            color: #4CAF50;
-        }
+    .game-image {
+        height: 200px;
+        background-size: cover;
+        background-position: center;
+    }
 
-        .auth-section {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
+    .game-content {
+        padding: 1.5rem;
+    }
 
-        .auth-section a {
-            text-decoration: none;
-            padding: 8px 20px;
-            border-radius: 6px;
-            font-weight: 500;
-            transition: all 0.2s;
-            font-size: 14px;
-            border: none;
-            cursor: pointer;
-        }
+    .game-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+    }
 
-        .auth-section a:first-child {
-            background-color: #2D3648;
-            color: white;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-        }
+    .play-button {
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        background: #4CAF50;
+        color: white;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
 
-        .auth-section a:first-child:hover {
-            background-color: #1f2532;
-        }
+    .play-button:hover:not(:disabled) {
+        background: #45a049;
+    }
 
-        .auth-section a:last-child {
-            background-color: #4a90e2;
-            color: white;
-        }
+    .play-button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
 
-        .auth-section a:last-child:hover {
-            background-color: #357abd;
-        }
+    .game-container {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: var(--game-width);
+        height: var(--game-height);
+        background: #1a1a1a;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        z-index: 1000;
+    }
 
-        /* Hero section */
-        .hero-section {
-            text-align: center;
-            padding: 4rem 2rem;
-            background: #f5f5f5;
-        }
+    .game-container.active {
+        display: flex;
+        flex-direction: column;
+    }
 
-        .hero-section h1 {
-            font-size: 2.5rem;
-            color: #333;
-            margin-bottom: 1rem;
-        }
+    .game-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background: #333;
+        color: white;
+    }
 
-        .hero-section p {
-            color: #666;
-            max-width: 600px;
-            margin: 0 auto 2rem;
-        }
+    .close-button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        background: #ff4444;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
 
-        .cta-button {
-            display: inline-block;
-            background: #4CAF50;
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: background 0.3s;
-        }
+    .close-button:hover {
+        background: #cc0000;
+    }
 
-        .cta-button:hover {
-            background: #388E3C;
-        }
+    #game-canvas {
+        width: 100%;
+        height: calc(100% - 60px);
+        background: #000;
+    }
 
-        /* Section styles */
-        .section-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
+    .game-controls-overlay {
+        display: none;
+        position: absolute;
+        bottom: 20px;
+        left: 0;
+        right: 0;
+        padding: 10px;
+    }
 
-        .section-header h2 {
-            font-size: 2rem;
-            color: #333;
-            margin-bottom: 1rem;
-        }
+    .mobile-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 600px;
+        margin: 0 auto;
+    }
 
-        .section-header p {
-            color: #666;
-            max-width: 600px;
-            margin: 0 auto;
-        }
+    .d-pad {
+        position: relative;
+        width: 150px;
+        height: 150px;
+    }
 
-        /* Game grid */
-        .games-section {
-            padding: 4rem 0;
-            background: #fff;
-        }
+    .d-pad-btn {
+        position: absolute;
+        width: 50px;
+        height: 50px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        color: white;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
 
+    .d-pad-btn:active {
+        background: rgba(255,255,255,0.4);
+    }
+
+    .d-pad-btn.up { top: 0; left: 50px; }
+    .d-pad-btn.left { left: 0; top: 50px; }
+    .d-pad-btn.right { right: 0; top: 50px; }
+    .d-pad-btn.down { bottom: 0; left: 50px; }
+
+    .action-btn {
+        width: 80px;
+        height: 80px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(255,0,0,0.2);
+        color: white;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .action-btn:active {
+        background: rgba(255,0,0,0.4);
+    }
+
+    @media screen and (max-width: 768px) {
         .game-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            padding: 2rem 0;
-        }
-
-        .game-card {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-        }
-
-        .game-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .game-image {
-            height: 200px;
-            background-size: cover;
-            background-position: center;
-        }
-
-        .game-content {
-            padding: 1.5rem;
-        }
-
-        .game-content h3 {
-            margin: 0 0 1rem;
-            color: #2D3648;
-        }
-
-        .game-controls {
-            margin-top: 1rem;
-        }
-
-        .controls-info {
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        .controls-info p {
-            margin: 0.25rem 0;
-        }
-
-        .controls-info i {
-            margin-right: 0.5rem;
-            width: 16px;
-        }
-
-        .play-button {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background-color 0.2s;
-            width: 100%;
-        }
-
-        .play-button:hover:not(:disabled) {
-            background: #45a049;
-        }
-
-        .play-button:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-        }
-
-        .game-stats {
-            display: flex;
+            grid-template-columns: 1fr;
             gap: 1rem;
-            margin: 1rem 0;
-            padding: 0.5rem;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-        }
-
-        .stat {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .stat .label {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9rem;
-        }
-
-        .stat span:not(.label) {
-            color: white;
-            font-weight: bold;
+            padding: 1rem;
         }
 
         .game-card {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .game-container {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #1a1a1a;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-        }
-
-        .game-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             margin-bottom: 1rem;
         }
 
-        .close-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            line-height: 1;
-        }
-
-        .close-btn:hover {
-            color: #ff4444;
-        }
-
-        .game-stats {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .stat {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: white;
-        }
-
-        /* Footer */
-        footer {
-            background: #333;
-            color: #fff;
-            padding: 2rem 0;
-            text-align: center;
-        }
-
-        footer .container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        footer .footer-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        footer .social-links {
-            margin-top: 1rem;
-        }
-
-        footer .social-links a {
-            margin: 0 1rem;
-            color: #fff;
-            transition: color 0.2s;
-        }
-
-        footer .social-links a:hover {
-            color: #4CAF50;
-        }
-
-        /* Game Modal Styles */
-        .game-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-        }
-
-        .modal-content {
-            position: relative;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #1a1a1a;
-            padding: 20px;
-            border-radius: 10px;
-            max-width: 90%;
-            width: fit-content;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #333;
-        }
-
-        .modal-header h2 {
-            color: #fff;
-            margin: 0;
-            font-size: 24px;
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 28px;
-            cursor: pointer;
-            padding: 0 10px;
-            transition: color 0.3s;
-        }
-
-        .close-modal:hover {
-            color: #ff4444;
-        }
-
         .game-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 10px 0;
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
         }
 
-        #gameCanvas {
-            background-color: #000;
-            border: 2px solid #333;
-            border-radius: 4px;
+        .game-controls-overlay {
+            display: block;
         }
 
-        .game-stats {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            background-color: #333;
-            border-radius: 5px;
-            margin-top: 15px;
-            color: #fff;
-            font-family: monospace;
-            font-size: 18px;
+        #game-canvas {
+            touch-action: none;
         }
-
-        .game-stats span {
-            margin: 0 10px;
-        }
-
-        /* Avatar styles */
-        .user-section {
-            display: flex;
-            align-items: center;
-            margin-right: 15px;
-            position: relative;
-        }
-
-        .avatar-dropdown {
-            position: relative;
-            cursor: pointer;
-        }
-
-        .avatar-small {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-        }
-
-        .avatar-dropdown:hover .avatar-small {
-            transform: scale(1.1);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-
-        .user-avatar {
-            cursor: pointer;
-        }
-
-        /* Leaderboard styles */
-        .game-leaderboard {
-            margin-top: 1rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-        }
-
-        .game-leaderboard table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .game-leaderboard th,
-        .game-leaderboard td {
-            padding: 0.5rem;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .game-leaderboard th {
-            font-weight: bold;
-            color: #fff;
-        }
-
-        .game-leaderboard td {
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .avatar-tiny {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            margin-right: 0.5rem;
-            vertical-align: middle;
-        }
-
-        .no-scores {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.6);
-            padding: 1rem;
-        }
-
-        /* Game Controls */
-        .game-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .control-button {
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-        }
-
-        .control-button:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            transform: scale(1.1);
-        }
-
-        /* Pause Overlay */
-        .pause-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
-
-        .pause-overlay.hidden {
-            display: none;
-        }
-
-        .pause-content {
-            text-align: center;
-            color: #fff;
-        }
-
-        .pause-content h3 {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-
-        /* Game Stats */
-        .game-stats {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px;
-            background-color: #333;
-            border-radius: 5px;
-            margin-top: 15px;
-            color: #fff;
-            font-family: monospace;
-            font-size: 18px;
-        }
-
-        .stat-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .stat-label {
-            color: #888;
-        }
-
-        .stat-value {
-            color: #4CAF50;
-            font-weight: bold;
-        }
-
-        #currentScore {
-            min-width: 60px;
-            text-align: right;
-        }
-
-        /* Game Container */
-        .game-container {
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 10px 0;
-        }
-
-        #gameCanvas {
-            background-color: #000;
-            border: 2px solid #333;
-            border-radius: 4px;
-        }
-
-        .leaderboard-entry {
-            display: flex;
-            align-items: center;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            margin-bottom: 4px;
-            border-radius: 4px;
-        }
-
-        .leaderboard-entry.current-user {
-            background: rgba(76, 175, 80, 0.2);
-            border: 1px solid #4CAF50;
-        }
-
-        .rank {
-            width: 40px;
-            font-weight: bold;
-        }
-
-        .username {
-            flex: 1;
-        }
-
-        .score {
-            font-weight: bold;
-            margin-left: 10px;
-        }
-
-        .avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin-right: 10px;
-            object-fit: cover;
-            border: 2px solid #fff;
-        }
-
-        .no-scores {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.6);
-            padding: 1rem;
-        }
+    }
     </style>
 </body>
 </html>
