@@ -6,13 +6,17 @@ function toggleView() {
     
     if (!isMobileView) {
         // Switch to mobile view
-        viewport.setAttribute('content', 'width=device-width, initial-scale=0.6, maximum-scale=0.6');
+        viewport.setAttribute('content', 'width=device-width, initial-scale=0.6, user-scalable=no');
+        document.documentElement.style.setProperty('--content-width', '166.67%');
+        document.documentElement.style.setProperty('--content-scale', '0.6');
         toggleButton.innerHTML = '<i class="fas fa-mobile-alt"></i> Mobile View';
         localStorage.setItem('preferredView', 'mobile');
         document.body.classList.add('mobile-view');
     } else {
         // Switch to desktop view
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, user-scalable=no');
+        document.documentElement.style.setProperty('--content-width', '100%');
+        document.documentElement.style.setProperty('--content-scale', '1');
         toggleButton.innerHTML = '<i class="fas fa-desktop"></i> Desktop View';
         localStorage.setItem('preferredView', 'desktop');
         document.body.classList.remove('mobile-view');
@@ -26,11 +30,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const preferredView = localStorage.getItem('preferredView') || 'desktop';
     
     if (preferredView === 'mobile') {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=0.6, maximum-scale=0.6');
+        viewport.setAttribute('content', 'width=device-width, initial-scale=0.6, user-scalable=no');
+        document.documentElement.style.setProperty('--content-width', '166.67%');
+        document.documentElement.style.setProperty('--content-scale', '0.6');
         toggleButton.innerHTML = '<i class="fas fa-mobile-alt"></i> Mobile View';
         document.body.classList.add('mobile-view');
     } else {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, user-scalable=no');
+        document.documentElement.style.setProperty('--content-width', '100%');
+        document.documentElement.style.setProperty('--content-scale', '1');
         toggleButton.innerHTML = '<i class="fas fa-desktop"></i> Desktop View';
         document.body.classList.remove('mobile-view');
     }
