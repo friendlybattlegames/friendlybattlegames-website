@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <nav>
     <div class="nav-container">
+        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+            <i class="fas fa-bars" id="menu-icon"></i>
+        </button>
         <div class="nav-left">
             <a href="index.html" class="logo">
                 <img src="https://i.postimg.cc/9fSpc0c3/logo.png" alt="FriendlyBattleGames Logo">
             </a>
-            <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
-                <i class="fas fa-bars"></i>
-            </button>
         </div>
         
         <div class="nav-links" id="nav-links">
@@ -73,8 +73,17 @@
         border: none;
         color: white;
         font-size: 24px;
+        padding: 8px;
         cursor: pointer;
-        padding: 5px;
+        transition: all 0.3s ease;
+    }
+
+    .mobile-menu-toggle:hover {
+        color: var(--primary-color);
+    }
+
+    .mobile-menu-toggle:focus {
+        outline: none;
     }
 
     .nav-links {
@@ -226,12 +235,7 @@
     @media screen and (max-width: 768px) {
         .mobile-menu-toggle {
             display: block;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            padding: 5px;
-            cursor: pointer;
+            margin-right: 10px;
         }
 
         .nav-links {
@@ -316,7 +320,17 @@
 <script>
 function toggleMobileMenu() {
     const navLinks = document.getElementById('nav-links');
+    const menuIcon = document.getElementById('menu-icon');
     navLinks.classList.toggle('active');
+    
+    // Toggle between hamburger and close icons
+    if (navLinks.classList.contains('active')) {
+        menuIcon.classList.remove('fa-bars');
+        menuIcon.classList.add('fa-times');
+    } else {
+        menuIcon.classList.remove('fa-times');
+        menuIcon.classList.add('fa-bars');
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -324,12 +338,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const avatarImg = document.getElementById('avatar-img');
     const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
     const navLinks = document.getElementById('nav-links');
+    const menuIcon = document.getElementById('menu-icon');
+
+    // Reset menu state on page load
+    navLinks.classList.remove('active');
+    menuIcon.classList.remove('fa-times');
+    menuIcon.classList.add('fa-bars');
 
     if (userSection && avatarImg) {
         avatarImg.addEventListener('click', function(e) {
             e.stopPropagation();
             // Close mobile menu if open
             navLinks.classList.remove('active');
+            menuIcon.classList.remove('fa-times');
+            menuIcon.classList.add('fa-bars');
             // Toggle user dropdown
             userSection.classList.toggle('active');
         });
@@ -340,12 +362,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 userSection.classList.remove('active');
                 if (!navLinks.contains(e.target)) {
                     navLinks.classList.remove('active');
+                    menuIcon.classList.remove('fa-times');
+                    menuIcon.classList.add('fa-bars');
                 }
             }
         });
 
         // Close user dropdown when opening mobile menu
-        mobileMenuToggle.addEventListener('click', function() {
+        mobileMenuToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
             userSection.classList.remove('active');
         });
     }
