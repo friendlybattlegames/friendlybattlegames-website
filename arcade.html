@@ -268,20 +268,22 @@
     }
 
     .game-controls-overlay {
-        display: none;
-        position: absolute;
+        position: fixed;
         bottom: 20px;
         left: 0;
         right: 0;
-        padding: 10px;
+        padding: 20px;
+        z-index: 1010;
+        pointer-events: none;
     }
 
     .mobile-controls {
-        display: flex;
+        display: none;
         justify-content: space-between;
         align-items: center;
         max-width: 600px;
         margin: 0 auto;
+        pointer-events: auto;
     }
 
     .d-pad {
@@ -296,7 +298,7 @@
         height: 50px;
         border: none;
         border-radius: 50%;
-        background: rgba(255,255,255,0.2);
+        background: rgba(255, 255, 255, 0.3);
         color: white;
         font-size: 20px;
         display: flex;
@@ -304,10 +306,13 @@
         justify-content: center;
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
+        backdrop-filter: blur(5px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
     .d-pad-btn:active {
-        background: rgba(255,255,255,0.4);
+        background: rgba(255, 255, 255, 0.5);
+        transform: scale(0.95);
     }
 
     .d-pad-btn.up { top: 0; left: 50px; }
@@ -320,7 +325,7 @@
         height: 80px;
         border: none;
         border-radius: 50%;
-        background: rgba(255,0,0,0.2);
+        background: rgba(255, 0, 0, 0.3);
         color: white;
         font-size: 24px;
         display: flex;
@@ -328,10 +333,13 @@
         justify-content: center;
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
+        backdrop-filter: blur(5px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
     .action-btn:active {
-        background: rgba(255,0,0,0.4);
+        background: rgba(255, 0, 0, 0.5);
+        transform: scale(0.95);
     }
 
     @media screen and (max-width: 768px) {
@@ -349,15 +357,43 @@
             width: 100vw;
             height: 100vh;
             border-radius: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: none;
+        }
+
+        .game-container.active {
+            display: flex;
         }
 
         .game-controls-overlay {
             display: block;
         }
 
+        .mobile-controls {
+            display: flex;
+        }
+
         #game-canvas {
             touch-action: none;
         }
+
+        .game-header {
+            padding: 10px;
+        }
+
+        .close-button {
+            z-index: 1020;
+        }
+    }
+
+    .body.mobile-view .game-controls-overlay {
+        display: block;
+    }
+
+    .body.mobile-view .mobile-controls {
+        display: flex;
     }
     </style>
 </body>
