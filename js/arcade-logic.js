@@ -58,6 +58,73 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
         });
+
+        // Function to show game container
+        function showGameContainer(gameId) {
+            const gameContainer = document.getElementById('game-container');
+            const gameCanvas = document.getElementById('game-canvas');
+            const gameControlsOverlay = document.querySelector('.game-controls-overlay');
+            const mobileControls = document.querySelector('.mobile-controls');
+            
+            if (!gameContainer || !gameCanvas) return;
+
+            // Show game container
+            gameContainer.style.display = 'flex';
+            gameContainer.classList.add('active');
+
+            // Show mobile controls
+            if (gameControlsOverlay && mobileControls) {
+                gameControlsOverlay.style.display = 'block';
+                mobileControls.style.display = 'flex';
+            }
+
+            // Set up close button
+            const closeButton = document.getElementById('close-game');
+            if (closeButton) {
+                closeButton.onclick = () => {
+                    gameContainer.style.display = 'none';
+                    gameContainer.classList.remove('active');
+                    if (gameControlsOverlay && mobileControls) {
+                        gameControlsOverlay.style.display = 'none';
+                        mobileControls.style.display = 'none';
+                    }
+                    // Additional cleanup if needed
+                };
+            }
+
+            // Initialize the game based on gameId
+            switch (gameId) {
+                case 'space-shooter':
+                    // Initialize space shooter game
+                    break;
+                case 'snake':
+                    // Initialize snake game
+                    break;
+                case 'memory':
+                    // Initialize memory game
+                    break;
+            }
+        }
+
+        // Initialize mobile controls
+        const gameControlsOverlay = document.querySelector('.game-controls-overlay');
+        const mobileControls = document.querySelector('.mobile-controls');
+        
+        if (gameControlsOverlay && mobileControls) {
+            // Force initial display properties
+            gameControlsOverlay.style.cssText = 'display: block !important; z-index: 1010;';
+            mobileControls.style.cssText = 'display: flex !important;';
+            
+            // Add debug outlines
+            gameControlsOverlay.style.border = '2px solid red';
+            mobileControls.style.border = '2px solid blue';
+            
+            console.log('Mobile controls initialized');
+            console.log('Overlay display:', getComputedStyle(gameControlsOverlay).display);
+            console.log('Controls display:', getComputedStyle(mobileControls).display);
+        } else {
+            console.error('Mobile controls elements not found');
+        }
     } catch (error) {
         console.error('Error initializing arcade:', error);
     }
